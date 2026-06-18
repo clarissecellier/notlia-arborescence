@@ -129,6 +129,12 @@
       <label class="fopt"><input type="checkbox" class="fForme" value="Poudre">Poudre</label>
       <label class="fopt"><input type="checkbox" class="fForme" value="Solide">Solide</label>
     </div>
+    <div class="fgroup">
+      <div class="ftitle">Gamme <span style="font-weight:400;color:var(--muted)">(Pro)</span></div>
+      <label class="fopt"><input type="checkbox" class="fGamme" value="Envol">Envol</label>
+      <label class="fopt"><input type="checkbox" class="fGamme" value="Essentiel">Essentiel</label>
+      <label class="fopt"><input type="checkbox" class="fGamme" value="Expert">Expert</label>
+    </div>
     <button class="reset" onclick="resetFilters()">Réinitialiser les filtres</button>
   </aside>
 
@@ -265,13 +271,13 @@ for(const cat in PART){ PART[cat].forEach(p=>{
   ALLPROD.push({
     name:p[0], marque:p[1], cat:newCat, forme:formeOf(p[0]),
     pubs: sh ? ['Professionnel','Particulier'] : ['Particulier'],
-    proGamme: sh?sh.gamme:null, shared: !!sh
+    gamme: sh?sh.gamme:null, shared: !!sh   // gamme = attribut Pro (null si non concerné)
   });
 });}
 // Produits Pro (Nectra) propres : non listés dans la source → univers Pro à compléter.
 
 /* ---------- ÉTAT ---------- */
-let state = { universe:null, proCat:null, gamme:null, categorie:null };
+let state = { universe:null, proCat:null, categorie:null };
 
 /* ---------- FILTRES ---------- */
 function buildMarqueFilter(){
@@ -293,18 +299,18 @@ function selectedMarques(){return sel('fMarque');}
 function selectedPublics(){return sel('fPublic');}
 function selectedCats(){return sel('fCat');}
 function selectedFormes(){return sel('fForme');}
-function anyFilter(){return selectedPublics().length+selectedCats().length+selectedMarques().length+selectedFormes().length>0;}
+function selectedGammes(){return sel('fGamme');}
+function anyFilter(){return selectedPublics().length+selectedCats().length+selectedMarques().length+selectedFormes().length+selectedGammes().length>0;}
 function resetFilters(){
-  document.querySelectorAll('.fPublic,.fCat,.fMarque,.fForme').forEach(c=>c.checked=false);
+  document.querySelectorAll('.fPublic,.fCat,.fMarque,.fForme,.fGamme').forEach(c=>c.checked=false);
   render();
 }
-document.addEventListener('change',e=>{if(e.target.matches('.fPublic,.fCat,.fMarque,.fForme'))render();});
+document.addEventListener('change',e=>{if(e.target.matches('.fPublic,.fCat,.fMarque,.fForme,.fGamme'))render();});
 
 /* ---------- NAVIGATION ---------- */
-function goHome(){state={universe:null,proCat:null,gamme:null,categorie:null};render();}
-function goUniverse(u){state={universe:u,proCat:null,gamme:null,categorie:null};render();}
-function goProCat(c){state.proCat=c;state.gamme=null;render();}
-function goGamme(g){state.gamme=g;render();}
+function goHome(){state={universe:null,proCat:null,categorie:null};render();}
+function goUniverse(u){state={universe:u,proCat:null,categorie:null};render();}
+function goProCat(c){state.proCat=c;render();}
 function goCategorie(c){state.categorie=c;render();}
 
 /* ---------- RENDU ---------- */
@@ -317,7 +323,6 @@ function render(){
   if(!state.universe){c.innerHTML=viewHome();return;}
   if(state.universe==='pro'){
     if(!state.proCat){c.innerHTML=viewProCats();return;}
-    if(!state.gamme){c.innerHTML=viewProGammes();return;}
     c.innerHTML=viewProProducts();return;
   }
   if(state.universe==='part'){
@@ -335,8 +340,7 @@ function renderCrumb(){
   }
   if(state.universe==='pro'){
     parts.push(`<a onclick="goUniverse('pro')">Professionnel</a>`);
-    if(state.proCat) parts.push(`<a onclick="goProCat(${JSON.stringify(state.proCat).replace(/"/g,'&quot;')})">${esc(state.proCat)}</a>`);
-    if(state.gamme) parts.push(`<span>Gamme ${esc(state.gamme)}</span>`);
+    if(state.proCat) parts.push(`<span>${esc(state.proCat)}</span>`);
   }
   if(state.universe==='part'){
     parts.push(`<a onclick="goUniverse('part')">Particulier</a>`);
@@ -351,7 +355,7 @@ function viewHome(){
     <p class="lead">Choisissez un univers, ou filtrez directement à gauche par public, catégorie, marque ou forme.</p>
     <div class="home-hero">
       <div class="uni-card pro" onclick="goUniverse('pro')">
-        <div><h2>PROFESSIONNEL</h2><p>Par catégorie, puis gamme (Envol · Essentiel · Expert)</p></div>
+        <div><h2>PROFESSIONNEL</h2><p>Par catégorie · gamme (Envol · Essentiel · Expert) en filtre</p></div>
         <div class="go">Entrer →</div>
       </div>
       <div class="uni-card part" onclick="goUniverse('part')">
@@ -363,12 +367,13 @@ function viewHome(){
 }
 
 function viewFiltered(){
-  const pubs=selectedPublics(), cats=selectedCats(), marques=selectedMarques(), formes=selectedFormes();
+  const pubs=selectedPublics(), cats=selectedCats(), marques=selectedMarques(), formes=selectedFormes(), gammes=selectedGammes();
   let res=ALLPROD.filter(p=>
     (!pubs.length||pubs.some(x=>p.pubs.includes(x))) &&
     (!cats.length||cats.includes(p.cat)) &&
     (!marques.length||marques.includes(p.marque)) &&
-    (!formes.length||formes.includes(p.forme))
+    (!formes.length||formes.includes(p.forme)) &&
+    (!gammes.length||gammes.includes(p.gamme))
   );
   // Récap des filtres actifs
   const chips=[]
@@ -376,6 +381,7 @@ function viewFiltered(){
     .concat(cats.map(v=>['Catégorie',v]))
     .concat(marques.map(v=>['Marque',v]))
     .concat(formes.map(v=>['Forme',v]))
+    .concat(gammes.map(v=>['Gamme',v]))
     .map(([k,v])=>`<span class="fchip"><b>${k} :</b> ${esc(v)}</span>`).join('');
   // Le Pro n'a pas encore de produits propres (hors exemples partagés) → prévenir
   const proCible = pubs.includes('Professionnel') || cats.some(c=>{const cc=CATS.find(x=>x.name===c);return cc&&cc.pubs.includes('Professionnel');});
@@ -394,38 +400,27 @@ function viewProCats(){
   const cats=catsForPublic('Professionnel');
   return `<span class="badge pro">Professionnel</span>
     <h1>Catégories</h1>
-    <p class="lead">Sélectionnez une catégorie. Chacune est déclinée en gammes (Envol · Essentiel · Expert).</p>
+    <p class="lead">Sélectionnez une catégorie. La gamme (Envol · Essentiel · Expert) se filtre à gauche.</p>
     <div class="grid">${cats.map(c=>{
       const shared=CATS.find(x=>x.name===c).pubs.length===2;
+      const n=prodCount(c,'Professionnel');
       return `<div class="card pro" onclick="goProCat(${JSON.stringify(c).replace(/"/g,'&quot;')})">
         <div class="t">${esc(c)}</div>
-        <div class="meta">3 gammes${shared?' · aussi côté Particulier':''}</div>
-        <div class="arrow">Explorer →</div>
+        <div class="meta">${n?n+' produit'+(n>1?'s':''):'À compléter'}${shared?' · aussi côté Particulier':''}</div>
+        <div class="arrow">Voir →</div>
       </div>`;}).join('')}</div>`;
 }
 
-function viewProGammes(){
-  return `<span class="badge pro">${esc(state.proCat)}</span>
-    <h1>Gammes</h1>
-    <p class="lead">Gammes disponibles pour « ${esc(state.proCat)} ».</p>
-    <div class="grid">${GAMMES.map(g=>`
-      <div class="card pro" onclick="goGamme('${g}')">
-        <div class="t">Gamme ${g}</div>
-        <div class="arrow">Voir les produits →</div>
-      </div>`).join('')}</div>`;
-}
-
 function viewProProducts(){
-  const prods=ALLPROD.filter(p=>p.cat===state.proCat && p.pubs.includes('Professionnel') && p.proGamme===state.gamme);
-  const head=`<span class="badge pro">${esc(state.proCat)} › Gamme ${esc(state.gamme)}</span>
-    <h1>Gamme ${esc(state.gamme)}</h1>`;
+  const prods=ALLPROD.filter(p=>p.cat===state.proCat && p.pubs.includes('Professionnel'));
+  const head=`<span class="badge pro">Professionnel</span><h1>${esc(state.proCat)}</h1>`;
   const list = prods.length
-    ? `<div class="count">${prods.length} produit${prods.length>1?'s':''} (exemple partagé Pro + Particulier)</div>
+    ? `<div class="count">${prods.length} produit${prods.length>1?'s':''}</div>
        <div class="plist">${prods.map(prodRow).join('')}</div>`
     : '';
   return head+list+`<div class="empty">
       Produits Nectra propres au Pro à compléter (la source d'origine s'arrête à la forme).${
-      prods.length?' Les produits ci-dessus sont des <b>exemples</b> de produits vendus aux deux publics : même fiche, double badge.':''}
+      prods.length?' Les produits ci-dessus sont des <b>exemples</b> de produits vendus aux deux publics (même fiche, double badge), avec leur gamme en attribut.':''}
     </div>`;
 }
 
@@ -462,7 +457,7 @@ function pubTags(p){
 }
 function prodRow(p){
   return `<div class="prod">
-    <span>${esc(p.name)}<br><span class="psub">${esc(p.cat)} · ${esc(p.forme)}${p.shared?` · ⇄ aussi en Pro (exemple)`:''}</span></span>
+    <span>${esc(p.name)}<br><span class="psub">${esc(p.cat)} · ${esc(p.forme)}${p.gamme?` · Gamme ${esc(p.gamme)}`:''}${p.shared?` · ⇄ aussi en Pro (exemple)`:''}</span></span>
     <span class="pmwrap"><span class="pm tag-marque">${esc(p.marque)}</span>${pubTags(p)}</span>
   </div>`;
 }
