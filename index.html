@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOTLIA — Refonte d'arborescence</title>
+<style>
+  :root{--ink:#1c2127;--muted:#6b7280;--line:#dde2e9;--accent:#2f6f7e}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fbfcfd;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
+  .head{text-align:center;margin-bottom:40px}
+  .head .kicker{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  h1{font-size:30px;margin:0 0 8px;letter-spacing:.5px}
+  .head p{color:var(--muted);font-size:15px;margin:0}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px;width:100%}
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;text-decoration:none;
+    color:inherit;transition:.12s;display:flex;flex-direction:column;gap:8px}
+  .card:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(20,30,50,.1);transform:translateY(-2px)}
+  .card .t{font-size:18px;font-weight:700}
+  .card .d{font-size:13px;color:var(--muted);line-height:1.5}
+  .card .go{margin-top:8px;font-size:13px;font-weight:700;color:var(--accent)}
+  .full{grid-column:1 / -1}
+  footer{margin-top:36px;color:var(--muted);font-size:12px;text-align:center}
+  @media(max-width:600px){.cards{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="head">
+    <div class="kicker">Studio Toinon · pour NOTLIA</div>
+    <h1>Refonte de l'arborescence</h1>
+    <p>Site catalogue · proposition de structure · juin 2026</p>
+  </div>
+  <div class="cards">
+    <a class="card full" href="2026-06-18_prototype-navigation.html">
+      <div class="t">🖱️ Prototype cliquable</div>
+      <div class="d">Naviguez dans la nouvelle arborescence comme sur le site : univers, catégories, sous-catégories, produits, filtres par marque et par forme.</div>
+      <div class="go">Tester la navigation →</div>
+    </a>
+    <a class="card full" href="2026-06-18_sitemap-notlia.html">
+      <div class="t">🗺️ Sitemap visuel</div>
+      <div class="d">Vue d'ensemble de l'arborescence sur une seule page : les deux univers, les catégories et les attributs.</div>
+      <div class="go">Voir le plan →</div>
+    </a>
+  </div>
+  <footer>Document de travail confidentiel — Studio Toinon</footer>
+</body>
+</html>
