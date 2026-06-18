@@ -68,8 +68,11 @@
   .plist{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px}
   .prod{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;
     display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .prod{align-items:flex-start}
   .prod .pm{font-size:11px;color:#fff;border-radius:999px;padding:2px 8px;white-space:nowrap}
   .prod .psub{font-size:11px;color:var(--muted)}
+  .pmwrap{display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end;align-items:center;flex:0 0 auto}
+  .tag-marque{background:var(--grey)}
   .empty{background:var(--soft);border:1px dashed var(--line);border-radius:12px;padding:28px;
     text-align:center;color:var(--muted);font-size:14px}
   .count{font-size:13px;color:var(--muted);margin-bottom:14px}
@@ -223,9 +226,23 @@ function formeOf(name){
   if(/savon noir mou|mastic|terre de sommières|blanc de meudon/.test(t)) return 'Solide';
   return 'Liquide';
 }
+// EXEMPLES de produits vendus aux DEUX publics (fiche unique, Public multi-valué).
+// → clé = nom exact du produit Particulier ; valeur = son rattachement dans l'arbo Pro.
+// À remplacer par la vraie liste fournie par le client.
+const SHARED = {
+  "Vinaigre de nettoyage 20° Ultraconcentré": {domaine:"Hygiène générale", gamme:"Essentiel"},
+  "Bicarbonate de soude": {domaine:"Hygiène générale", gamme:"Envol"}
+};
 const ALLPROD=[];
-for(const cat in PART){ PART[cat].forEach(p=> ALLPROD.push({name:p[0],marque:p[1],pub:'Particulier',cat:cat,forme:formeOf(p[0])})); }
-// Produits Pro (Nectra) : non listés dans la source → l'univers Pro reste à compléter.
+for(const cat in PART){ PART[cat].forEach(p=>{
+  const sh = SHARED[p[0]];
+  ALLPROD.push({
+    name:p[0], marque:p[1], cat:cat, forme:formeOf(p[0]),
+    pubs: sh ? ['Professionnel','Particulier'] : ['Particulier'],
+    proDomaine: sh?sh.domaine:null, proGamme: sh?sh.gamme:null, shared: !!sh
+  });
+});}
+// Produits Pro (Nectra) propres : non listés dans la source → univers Pro à compléter.
 
 /* ---------- ÉTAT ---------- */
 let state = { universe:null, gamme:null, domaine:null, categorie:null };
@@ -320,8 +337,8 @@ function viewHome(){
 function viewFiltered(){
   const pubs=selectedPublics(), cats=selectedCats(), marques=selectedMarques(), formes=selectedFormes();
   let res=ALLPROD.filter(p=>
-    (!pubs.length||pubs.includes(p.pub)) &&
-    (!cats.length||cats.includes(p.cat)) &&
+    (!pubs.length||pubs.some(x=>p.pubs.includes(x))) &&
+    (!cats.length||cats.includes(p.cat)||(p.proDomaine&&cats.includes(p.proDomaine))) &&
     (!marques.length||marques.includes(p.marque)) &&
     (!formes.length||formes.includes(p.forme))
   );
@@ -332,21 +349,17 @@ function viewFiltered(){
     .concat(marques.map(v=>['Marque',v]))
     .concat(formes.map(v=>['Forme',v]))
     .map(([k,v])=>`<span class="fchip"><b>${k} :</b> ${esc(v)}</span>`).join('');
-  // Le Pro n'a pas encore de produits → prévenir si l'utilisateur cible le Pro
+  // Le Pro n'a pas encore de produits propres (hors exemples partagés) → prévenir
   const proCible = pubs.includes('Professionnel') || cats.some(c=>PRO.domaines.includes(c));
   let proNote = proCible
-    ? `<div class="empty" style="margin-bottom:16px">Côté Professionnel (Nectra), les produits ne sont pas encore listés dans la source : aucun résultat Pro à afficher pour l'instant.</div>` : '';
+    ? `<div class="empty" style="margin-bottom:16px">Côté Professionnel (Nectra), seuls les <b>produits partagés (exemple)</b> sont rattachés au Pro pour l'instant ; le reste du catalogue Nectra est à compléter.</div>` : '';
 
   let head=`<h1>Résultats filtrés</h1>
     <div class="fchips">${chips}</div>`;
   if(res.length===0)
     return head+proNote+`<div class="empty">Aucun produit ne correspond à cette combinaison de filtres.</div>`;
   return head+proNote+`<div class="count">${res.length} produit${res.length>1?'s':''}</div>
-    <div class="plist">${res.map(p=>`
-      <div class="prod">
-        <span>${esc(p.name)}<br><span class="psub">${esc(p.cat)} · ${esc(p.forme)}</span></span>
-        <span class="pm tag-part">${esc(p.marque)}</span>
-      </div>`).join('')}</div>`;
+    <div class="plist">${res.map(prodRow).join('')}</div>`;
 }
 
 function viewProDomaines(){
@@ -373,12 +386,16 @@ function viewProGammes(){
 }
 
 function viewProProducts(){
-  return `<span class="badge pro">${esc(state.domaine)} › Gamme ${esc(state.gamme)}</span>
-    <h1>Gamme ${esc(state.gamme)}</h1>
-    <div class="empty">
-      Produits à compléter.<br>
-      L'arborescence d'origine s'arrête à la forme (liquide/poudre/solide) :
-      les références Nectra ne sont pas encore listées pour ce domaine et cette gamme.
+  const prods=ALLPROD.filter(p=>p.proDomaine===state.domaine && p.proGamme===state.gamme);
+  const head=`<span class="badge pro">${esc(state.domaine)} › Gamme ${esc(state.gamme)}</span>
+    <h1>Gamme ${esc(state.gamme)}</h1>`;
+  const list = prods.length
+    ? `<div class="count">${prods.length} produit partagé${prods.length>1?'s':''} Pro + Particulier (exemple)</div>
+       <div class="plist">${prods.map(prodRow).join('')}</div>`
+    : '';
+  return head+list+`<div class="empty">
+      Produits Nectra propres au Pro à compléter (la source d'origine s'arrête à la forme).${
+      prods.length?' Les produits ci-dessus sont des <b>exemples</b> de produits vendus aux deux publics : même fiche, double badge.':''}
     </div>`;
 }
 
@@ -398,27 +415,26 @@ function viewPartCategories(){
 }
 
 function viewPartProducts(){
-  let prods=matchMarque(PART[state.categorie]||[]);
-  // filtre forme (illustratif : repère le mot dans le nom)
-  const formes=[...document.querySelectorAll('.fForme:checked')].map(c=>c.value.toLowerCase());
-  if(formes.length){
-    prods=prods.filter(p=>{
-      const t=p[0].toLowerCase();
-      const isLiq=/liquide|gel|gélifié|alcool|vinaigre|eau|javel|acide|substitut|essence|huile|pétrole|white|diluant|lave|lessive|savon (?!noir mou)/.test(t);
-      const isSol=/poudre|cristaux|bicarbonate|terre|blanc de meudon|pierre|soude caustique|savon noir mou|mastic|siccatif|acétone|brou/.test(t);
-      const isPoudre=/poudre|cristaux|bicarbonate(?! .*gélifié)/.test(t);
-      return (formes.includes('liquide')&&isLiq)||(formes.includes('solide')&&isSol)||(formes.includes('poudre')&&isPoudre);
-    });
-  }
+  const prods=ALLPROD.filter(p=>p.cat===state.categorie);
   const head=`<span class="badge part">Particulier</span><h1>${esc(state.categorie)}</h1>`;
   if((PART[state.categorie]||[]).length===0)
     return head+`<div class="empty">Produits Arcyvert à récupérer auprès du client.</div>`;
-  if(prods.length===0)
-    return head+`<div class="empty">Aucun produit ne correspond aux filtres sélectionnés.</div>`;
   return head+`<div class="count">${prods.length} produit${prods.length>1?'s':''}</div>
-    <div class="plist">${prods.map(p=>`
-      <div class="prod"><span>${esc(p[0])}</span>
-        <span class="pm tag-part">${esc(p[1])}</span></div>`).join('')}</div>`;
+    <div class="plist">${prods.map(prodRow).join('')}</div>`;
+}
+
+/* ---------- AFFICHAGE PRODUIT ---------- */
+function pubTags(p){
+  let h='';
+  if(p.pubs.includes('Professionnel')) h+=`<span class="pm tag-pro">Pro</span>`;
+  if(p.pubs.includes('Particulier'))   h+=`<span class="pm tag-part">Particulier</span>`;
+  return h;
+}
+function prodRow(p){
+  return `<div class="prod">
+    <span>${esc(p.name)}<br><span class="psub">${esc(p.cat)} · ${esc(p.forme)}${p.shared?` · ⇄ aussi en Pro (exemple)`:''}</span></span>
+    <span class="pmwrap"><span class="pm tag-marque">${esc(p.marque)}</span>${pubTags(p)}</span>
+  </div>`;
 }
 
 /* ---------- HELPERS ---------- */
