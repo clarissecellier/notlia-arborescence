@@ -148,18 +148,17 @@
 /* ---------- DONNÉES ---------- */
 const MARQUES = ["Nectra","Arcyvert","Mieuxa","Supermieuxa","A l'olivier"];
 
-// Vocabulaire de catégories UNIFIÉ (commun aux deux publics). pubs = qui l'utilise.
+// Vocabulaire de catégories UNIFIÉ (aligné sur le vrai catalogue Nectra). pubs = qui l'utilise.
 const CATS = [
   {name:"Linge", pubs:["Professionnel","Particulier"]},
   {name:"Sanitaires", pubs:["Professionnel","Particulier"]},
   {name:"Nettoyage & surfaces", pubs:["Professionnel","Particulier"]},
-  {name:"Détartrage", pubs:["Professionnel","Particulier"]},
   {name:"Désinfection / Javel", pubs:["Professionnel","Particulier"]},
   {name:"Cuisine & alimentaire", pubs:["Professionnel"]},
   {name:"Mains & hygiène corporelle", pubs:["Professionnel"]},
   {name:"Industrie", pubs:["Professionnel"]},
-  {name:"Enzyma'", pubs:["Professionnel"]},
-  {name:"Excellence", pubs:["Professionnel"]},
+  {name:"Enzyma’", pubs:["Professionnel"]},
+  {name:"Détartrage", pubs:["Particulier"]},
   {name:"Canalisations & débouchage", pubs:["Particulier"]},
   {name:"Auto", pubs:["Particulier"]},
   {name:"Bricolage", pubs:["Particulier"]},
@@ -257,24 +256,193 @@ function formeOf(name){
   if(/savon noir mou|mastic|terre de sommières|blanc de meudon/.test(t)) return 'Solide';
   return 'Liquide';
 }
-// EXEMPLES de produits vendus aux DEUX publics (fiche unique, Public multi-valué).
-// → clé = nom exact du produit Particulier ; valeur = son rattachement dans l'arbo Pro.
-// À remplacer par la vraie liste fournie par le client.
+// Catalogue Pro réel (export WooCommerce Nectra, 18/06/2026). [nom, catégorie, gamme, forme]
+const PRO_RAW=[["Agent Blanchissant Essentiel","Linge","Essentiel","Liquide"],
+["Agent Renforçant Essentiel","Linge","Essentiel","Liquide"],
+["AL'K Chlore Essentiel","Industrie","Essentiel","Liquide"],
+["Anti A.L.M Expert","Industrie","Expert","Liquide"],
+["Anti-Verdissures Concentré Pro Expert","Industrie","Expert","Liquide"],
+["Assouplissant Linge Essentiel","Linge","Essentiel","Liquide"],
+["Assouplissant Linge Envol","Linge","Envol","Liquide"],
+["Bloc Cuvette WC Marino","Sanitaires",null,null],
+["Blocs Urinoirs Enzymat Expert","Enzyma’","Expert","Solide"],
+["Forzablu WC","Sanitaires",null,null],
+["Saniclip Uriwave Mango","Sanitaires",null,null],
+["Clips Sanitaire Essentiel Parfum Tutti-Frutti","Sanitaires","Essentiel","Solide"],
+["Concentré de javel 9.6%","Désinfection / Javel",null,null],
+["Crème à Récurer Essentiel","Sanitaires","Essentiel","Liquide"],
+["Cubes Urinoirs Nicols","Sanitaires",null,null],
+["Curve Uriwave Parfum Citrus","Sanitaires",null,null],
+["Curve Uriwave Parfum Mango","Sanitaires",null,null],
+["Décapant Four Liquide Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Décapant Four Liquide Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Dégraissant Friteuse Grill Plancha","Cuisine & alimentaire","Essentiel","Liquide"],
+["Dégraissant Alimentaire Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Dégraissant Bactéricide Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Dégraissant Bactéricide Essentiel","Cuisine & alimentaire","Essentiel","Liquide"],
+["Dégraissant Sol Surface Expert","Nettoyage & surfaces","Expert","Liquide"],
+["Désinfectant Primeur Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Des’odeur Expert","Linge","Expert","Liquide"],
+["Détartrant Gel WC Envol","Sanitaires","Envol","Liquide"],
+["Détartrant Machine Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Détergent Désinfectant Sans Rinçage Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Détergent Multi-Usages Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Détergent VO 2D Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Eau de Javel 2.6%","Désinfection / Javel",null,null],
+["Eau de Javel 2.6% Fraicheur Eucalyptus","Désinfection / Javel",null,null],
+["Enzyma Activateur Expert","Enzyma’","Expert","Poudre"],
+["Enzyma' Cuisine Expert","Enzyma’","Expert","Liquide"],
+["Enzyma' Détergent Expert","Enzyma’","Expert","Liquide"],
+["Enzyma' Graisses Expert","Enzyma’","Expert","Liquide"],
+["Enzyma' Sanitaire Expert","Enzyma’","Expert","Liquide"],
+["Enzyma' Septi-fos Expert","Enzyma’","Expert","Liquide"],
+["Extrait de Javel 12.5%","Désinfection / Javel",null,null],
+["Gel Javel WC Eucalyptus Envol","Sanitaires","Envol","Liquide"],
+["Gel Javel WC Eucalyptus Expert","Sanitaires","Expert","Liquide"],
+["Gel Rvolution'Air Power Uriwave","Industrie",null,null],
+["Grille UriWave Parfum Mango","Sanitaires",null,null],
+["Grille Urinoir Essentiel Parfum Tutti-Frutti","Sanitaires","Essentiel","Solide"],
+["Javel 9.6% Piscine","Désinfection / Javel",null,null],
+["Javel 9.6% Piscine avec Agents Anticalcaire","Désinfection / Javel",null,null],
+["Javel Détergente 2.6% Eucalyptus","Désinfection / Javel",null,null],
+["Lavage Crème Mains Envol","Mains & hygiène corporelle","Envol","Liquide"],
+["Lavage Crème Mains IBER","Mains & hygiène corporelle",null,null],
+["Lavage Mains Atelier Essentiel","Mains & hygiène corporelle","Essentiel","Liquide"],
+["Lavage Mains Bactéricide Essentiel","Mains & hygiène corporelle","Essentiel","Liquide"],
+["Lave-Verre Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Lessive Liquide Envol","Linge","Envol","Liquide"],
+["Lessive liquide Essentiel","Linge","Essentiel","Liquide"],
+["Lessive Poudre Envol","Linge","Envol","Poudre"],
+["Lessive Poudre Expert","Linge","Expert","Poudre"],
+["Lessive System'Film Expert","Linge","Expert","Liquide"],
+["Tablettes Linge Bactéricide Expert","Linge","Expert","Solide"],
+["Novelty Pastilles Activateur de Lavage","Linge",null,null],
+["Tablettes Linge Ecolabel Expert","Linge","Expert","Solide"],
+["Tablettes Linge Standard Envol","Linge","Envol","Solide"],
+["Lustrant Inox Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Tablettes Vaisselle Pro One Chlorées Envol","Cuisine & alimentaire","Envol","Solide"],
+["Tablettes Vaisselle Pro Oxy Essentiel","Cuisine & alimentaire","Essentiel","Solide"],
+["Tablettes Vaisselle Standard Envol","Cuisine & alimentaire","Envol","Solide"],
+["Tablettes Lave-Vaisselle 7en1 Essentiel","Cuisine & alimentaire","Essentiel","Solide"],
+["Nettoyant Détartrant System'Film Expert","Sanitaires","Expert","Liquide"],
+["Nettoyant Détartrant Bactéricide Expert","Sanitaires","Expert","Liquide"],
+["Nettoyant Lustrant Inox Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Nettoyant Sol 2D Floralia Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol 2D Floralia Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Nettoyant Sol 2D Marina Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol 2D Marina Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Nettoyant Sol 2D Tangelo Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol 2D Tangelo Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Nettoyant Sol Bact 3D Floralia Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Dosettes Nett Sol 2D Floralia Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Dosettes Nett Sol 2D Marina Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Dosettes Nett Sol 2D Tangelo Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Dosettes Nett Bact 3D Floralia Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Dosettes Nett Bact 3D Marina Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Dosettes Nett Bact 3D Tangelo Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Nettoyant Sol Bact 3D Fruits Rouges Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Bact 3D Lavande Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Bact 3D Marina Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Bact 3D Pin Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Bact 3D Pomme Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Bact 3D Tangelo Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Bact 3D Vanille Fleur d'Oranger Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Ammoniaque Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Citron Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Fraicheur Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol Pin Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Sol System'film Aloe Vera Expert","Nettoyage & surfaces","Expert","Liquide"],
+["Nettoyant Sol System'film Bocage Expert","Nettoyage & surfaces","Expert","Liquide"],
+["Nett Sol System'film Citron Expert","Nettoyage & surfaces","Expert","Liquide"],
+["Nettoyant Surfaces Modernes Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["Nettoyant Vitres Envol","Nettoyage & surfaces","Envol","Liquide"],
+["Nettoyant Vitres Essentiel","Nettoyage & surfaces","Essentiel","Liquide"],
+["NEUTR'ABSORB","Industrie",null,null],
+["Pastilles Chlorées Effervescentes","Désinfection / Javel",null,null],
+["Plonge Manuelle Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Poudre à Récurer Essentiel","Sanitaires","Essentiel","Poudre"],
+["Poudre Rénovante Lave-vaisselle Essentiel","Cuisine & alimentaire","Essentiel","Poudre"],
+["Rinçage Machine Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Rincage Machine Essentiel","Cuisine & alimentaire","Essentiel","Liquide"],
+["Rinçage Machine Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Savon Extra Pur Essentiel 400g","Linge","Essentiel","Solide"],
+["Sel Régénérant Lave-Vaisselle","Industrie",null,null],
+["Sel pour Adoucisseurs d'Eau et pour Piscines","Industrie",null,null],
+["Speed Detach' Expert","Nettoyage & surfaces","Expert","Liquide"],
+["Speed Plancha Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Spray Javel Détergente Citron 0.8%","Désinfection / Javel",null,null],
+["Spray javel 1.5%","Désinfection / Javel",null,null],
+["Tablettes WC Détartrantes Essentiel","Sanitaires","Essentiel","Solide"],
+["Tex’net Expert","Linge","Expert","Liquide"],
+["Vaisselle Machine Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Vaisselle Machine Essentiel","Cuisine & alimentaire","Essentiel","Liquide"],
+["Vaisselle Machine Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Vaisselle Manuelle Bactéricide Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Vaisselle Manuelle Bactéricide Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Vaisselle Manuelle Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Vaisselle Manuelle Essentiel","Cuisine & alimentaire","Essentiel","Liquide"],
+["Vaisselle Manuelle Expert","Cuisine & alimentaire","Expert","Liquide"],
+["Vaisselle Poudre Essentiel - Formule Renforcée","Cuisine & alimentaire","Essentiel","Poudre"],
+["Tablettes Dégraissantes Four Expert","Cuisine & alimentaire","Expert","Solide"],
+["Tablettes Lave-Vaisselle Tout en 1 Ecolabel Expert","Cuisine & alimentaire","Expert","Solide"],
+["Tablettes Vaisselle Spéciales Verres Expert","Cuisine & alimentaire","Expert","Solide"],
+["Détartrant Machine Essentiel","Cuisine & alimentaire","Essentiel","Liquide"],
+["Diamond Essentiel Citron","Sanitaires","Essentiel","Solide"],
+["Diamond Essentiel Mango","Sanitaires","Essentiel","Solide"],
+["Lessive Poudre Essentiel","Linge","Essentiel","Poudre"],
+["Grille Urinoir Essentiel Parfum Mango","Sanitaires","Essentiel","Solide"],
+["Clips Sanitaire Essentiel Parfum Mango","Sanitaires","Essentiel","Solide"],
+["Dégraissant Bactéricide Essentiel PAE","Cuisine & alimentaire","Essentiel","Liquide"],
+["Tablettes Linge Anti Calcaire Stop'Calc","Linge",null,null],
+["Lessive Liquide","Linge",null,"Liquide"],
+["Lessive Poudre","Linge",null,"Poudre"],
+["Tablettes Rinçage Four Expert","Cuisine & alimentaire","Expert","Solide"],
+["Tablettes Linge","Linge",null,"Solide"],
+["Assouplissant Linge","Linge",null,"Liquide"],
+["Dégraissant Alimentaire Envol","Cuisine & alimentaire","Envol","Liquide"],
+["Plonge Manuelle","Cuisine & alimentaire",null,"Liquide"],
+["Liquide Vaisselle Machine","Cuisine & alimentaire",null,"Liquide"],
+["Lave-Verre","Cuisine & alimentaire",null,"Liquide"],
+["Tablettes Lave-Vaisselle Tout-en-1","Cuisine & alimentaire",null,"Solide"],
+["Tablettes Lave-Vaisselle Pro Tout-en-1","Cuisine & alimentaire",null,"Solide"],
+["Liquide Rinçage Vaisselle Machine Professionnelle","Cuisine & alimentaire",null,"Liquide"],
+["Désodorisant D'Ambiance - Des Îles","Sanitaires",null,"Liquide"],
+["Désodorisant D'Ambiance - Provence","Sanitaires",null,"Liquide"],
+["Détergent Multi-Usages","Nettoyage & surfaces",null,"Liquide"],
+["Dégraissant Bactéricide Alimentaire","Cuisine & alimentaire",null,"Liquide"],
+["Nettoyant Sol 2D - Nuage De Coton","Nettoyage & surfaces",null,"Liquide"],
+["Nettoyant Sol 2D - Fleurs Estivales","Nettoyage & surfaces",null,"Liquide"],
+["Nettoyant Sol 2D - Douceur Tropicale","Nettoyage & surfaces",null,"Liquide"],
+["Parfum D'Ambiance - Nuage De Coton","Nettoyage & surfaces",null,"Liquide"],
+["Parfum D'Ambiance - Fleurs Estivales","Nettoyage & surfaces",null,"Liquide"],
+["Parfum D'Ambiance - Douceur Tropicale","Nettoyage & surfaces",null,"Liquide"],
+["Détartrant Gel WC","Sanitaires",null,"Liquide"],
+["Décapant Four, Grill, Piano","Cuisine & alimentaire",null,"Liquide"],
+["Lavage Crème Mains","Mains & hygiène corporelle",null,"Liquide"],
+["Liquide Nettoyant Vitre et Glace","Nettoyage & surfaces",null,"Liquide"],
+["Nettoyant Détartrant Bactéricide","Sanitaires",null,"Liquide"],
+["Détergent Bactéricide \"PAE\"","Cuisine & alimentaire",null,"Liquide"],
+["Détergent Autolaveuse Neutre","Nettoyage & surfaces",null,"Liquide"],
+["Détergent Autolaveuse Alcalin","Nettoyage & surfaces",null,"Liquide"],
+["Sel Adoucisseur d'Eau","Industrie",null,null],
+["Savon Extra Pur Essentiel 100g","Mains & hygiène corporelle","Essentiel","Solide"]];
+
+// EXEMPLES de produits Particulier aussi vendus en Pro (démo du double badge ; à confirmer client).
 const SHARED = {
-  "Vinaigre de nettoyage 20° Ultraconcentré": {gamme:"Essentiel"},
-  "Bicarbonate de soude": {gamme:"Envol"}
+  "Bicarbonate de soude": {gamme:"Envol"},
+  "Eau de repassage lavande": {gamme:"Essentiel"}
 };
 const ALLPROD=[];
+// Particulier (Mieuxa, Supermieuxa, A l'olivier, Arcyvert)
 for(const cat in PART){ PART[cat].forEach(p=>{
   const newCat = JAVEL.has(p[0]) ? "Désinfection / Javel" : (CATMAP[cat]||cat);
   const sh = SHARED[p[0]];
-  ALLPROD.push({
-    name:p[0], marque:p[1], cat:newCat, forme:formeOf(p[0]),
-    pubs: sh ? ['Professionnel','Particulier'] : ['Particulier'],
-    gamme: sh?sh.gamme:null, shared: !!sh   // gamme = attribut Pro (null si non concerné)
-  });
+  ALLPROD.push({name:p[0], marque:p[1], cat:newCat, forme:formeOf(p[0]),
+    gamme: sh?sh.gamme:null, pubs: sh?['Professionnel','Particulier']:['Particulier'], shared:!!sh});
 });}
-// Produits Pro (Nectra) propres : non listés dans la source → univers Pro à compléter.
+// Professionnel (Nectra) — vrai catalogue
+PRO_RAW.forEach(a=>{ ALLPROD.push({name:a[0], marque:'Nectra', cat:a[1],
+  forme:a[3]||formeOf(a[0]), gamme:a[2]||null, pubs:['Professionnel'], shared:false}); });
 
 /* ---------- ÉTAT ---------- */
 let state = { universe:null, proCat:null, categorie:null };
@@ -371,7 +539,7 @@ function viewHome(){
         <div class="go">Entrer →</div>
       </div>
     </div>
-    <p class="note">Catégories unifiées (un seul vocabulaire pour les deux publics). Public, catégorie, marque et forme sont des attributs filtrables : dès qu'un filtre est coché, le catalogue s'affiche à plat, tous univers confondus.</p>`;
+    <p class="note">Catégories unifiées (un seul vocabulaire pour les deux publics). Catalogue Pro = 169 produits Nectra réels. Public, catégorie, marque, forme et gamme (Pro) sont des attributs filtrables : dès qu'un filtre est coché, le catalogue s'affiche à plat, tous univers confondus.</p>`;
 }
 
 function viewFiltered(){
@@ -422,14 +590,9 @@ function viewProCats(){
 function viewProProducts(){
   const prods=ALLPROD.filter(p=>p.cat===state.proCat && p.pubs.includes('Professionnel'));
   const head=`<span class="badge pro">Professionnel</span><h1>${esc(state.proCat)}</h1>`;
-  const list = prods.length
-    ? `<div class="count">${prods.length} produit${prods.length>1?'s':''}</div>
-       <div class="plist">${prods.map(prodRow).join('')}</div>`
-    : '';
-  return head+list+`<div class="empty">
-      Produits Nectra propres au Pro à compléter (la source d'origine s'arrête à la forme).${
-      prods.length?' Les produits ci-dessus sont des <b>exemples</b> de produits vendus aux deux publics (même fiche, double badge), avec leur gamme en attribut.':''}
-    </div>`;
+  if(prods.length===0) return head+`<div class="empty">Aucun produit dans cette catégorie.</div>`;
+  return head+`<div class="count">${prods.length} produit${prods.length>1?'s':''}</div>
+    <div class="plist">${prods.map(prodRow).join('')}</div>`;
 }
 
 function viewPartCategories(){
