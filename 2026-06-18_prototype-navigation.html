@@ -473,9 +473,26 @@ function selectedPublics(){return sel('fPublic');}
 function selectedCats(){return sel('fCat');}
 function selectedFormes(){return sel('fForme');}
 function selectedGammes(){return sel('fGamme');}
-function anyFilter(){return selectedPublics().length+selectedCats().length+selectedMarques().length+selectedFormes().length+selectedGammes().length>0;}
+// "extra" = filtres autres que le Public qui mirroite l'univers en cours
+function extraFilters(){return selectedCats().length+selectedMarques().length+selectedFormes().length+selectedGammes().length;}
+function publicMismatch(){
+  const pubs=selectedPublics();
+  if(!pubs.length) return false;
+  if(state.universe==='pro')  return !(pubs.length===1&&pubs[0]==='Professionnel');
+  if(state.universe==='part') return !(pubs.length===1&&pubs[0]==='Particulier');
+  return true; // pas d'univers mais un Public coché → résultats filtrés
+}
+// Bascule en "résultats filtrés" seulement si un filtre AUTRE que le Public de l'univers est actif
+function anyFilter(){return extraFilters()>0 || publicMismatch();}
+// Coche le Public en cohérence avec l'univers en cours (pré-filtre)
+function syncPublicToUniverse(){
+  const want={pro:'Professionnel',part:'Particulier'}[state.universe]||null;
+  document.querySelectorAll('.fPublic').forEach(c=>{c.checked=(c.value===want);});
+  refreshConditionalFilters();
+}
 function resetFilters(){
-  document.querySelectorAll('.fPublic,.fCat,.fMarque,.fForme,.fGamme').forEach(c=>c.checked=false);
+  document.querySelectorAll('.fCat,.fMarque,.fForme,.fGamme').forEach(c=>c.checked=false);
+  syncPublicToUniverse();
   render();
 }
 document.addEventListener('change',e=>{
@@ -484,8 +501,8 @@ document.addEventListener('change',e=>{
 });
 
 /* ---------- NAVIGATION ---------- */
-function goHome(){state={universe:null,proCat:null,categorie:null};render();}
-function goUniverse(u){state={universe:u,proCat:null,categorie:null};render();}
+function goHome(){state={universe:null,proCat:null,categorie:null};syncPublicToUniverse();render();}
+function goUniverse(u){state={universe:u,proCat:null,categorie:null};syncPublicToUniverse();render();}
 function goProCat(c){state.proCat=c;render();}
 function goCategorie(c){state.categorie=c;render();}
 
