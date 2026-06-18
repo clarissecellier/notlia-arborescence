@@ -142,12 +142,37 @@
 /* ---------- DONNÉES ---------- */
 const MARQUES = ["Nectra","Arcyvert","Mieuxa","Supermieuxa","A l'olivier"];
 
-const PRO = {
-  gammes: ["Envol","Essentiel","Expert"],
-  domaines: ["Hygiène du linge","Hygiène sanitaire","Javel","Hygiène alimentaire",
-             "Hygiène générale","Hygiène des mains","Industrie","Enzyma'","Excellence"]
-  // Produits Pro à compléter (l'arbo d'origine s'arrête à la forme)
+// Vocabulaire de catégories UNIFIÉ (commun aux deux publics). pubs = qui l'utilise.
+const CATS = [
+  {name:"Linge", pubs:["Professionnel","Particulier"]},
+  {name:"Sanitaires", pubs:["Professionnel","Particulier"]},
+  {name:"Nettoyage & surfaces", pubs:["Professionnel","Particulier"]},
+  {name:"Détartrage", pubs:["Professionnel","Particulier"]},
+  {name:"Désinfection / Javel", pubs:["Professionnel","Particulier"]},
+  {name:"Cuisine & alimentaire", pubs:["Professionnel"]},
+  {name:"Mains & hygiène corporelle", pubs:["Professionnel"]},
+  {name:"Industrie", pubs:["Professionnel"]},
+  {name:"Enzyma'", pubs:["Professionnel"]},
+  {name:"Excellence", pubs:["Professionnel"]},
+  {name:"Canalisations & débouchage", pubs:["Particulier"]},
+  {name:"Auto", pubs:["Particulier"]},
+  {name:"Bricolage", pubs:["Particulier"]},
+  {name:"Combustible", pubs:["Particulier"]},
+  {name:"Extérieur & façades", pubs:["Particulier"]},
+  {name:"Piscine", pubs:["Particulier"]},
+  {name:"Air intérieur", pubs:["Particulier"]},
+  {name:"Insecticide / nuisibles", pubs:["Particulier"]}
+];
+const GAMMES = ["Envol","Essentiel","Expert"]; // sous-niveau Pro uniquement
+// Remappe les anciennes catégories Particulier vers le vocabulaire unifié
+const CATMAP = {
+  "Auto":"Auto","Bricolage":"Bricolage","Combustible":"Combustible","Détartrage":"Détartrage",
+  "Débouchage & canalisations":"Canalisations & débouchage","Extérieur":"Extérieur & façades",
+  "Linge":"Linge","Nettoyage":"Nettoyage & surfaces","Piscine":"Piscine",
+  "Sanitaires":"Sanitaires","Air intérieur":"Air intérieur","Insecticide":"Insecticide / nuisibles"
 };
+// Produits javel ré-affectés à la catégorie commune "Désinfection / Javel"
+const JAVEL = new Set(["Eau de javel 2.6%","Eau de javel concentrée 9,6%"]);
 
 const PART = {
   "Auto":[
@@ -230,22 +255,23 @@ function formeOf(name){
 // → clé = nom exact du produit Particulier ; valeur = son rattachement dans l'arbo Pro.
 // À remplacer par la vraie liste fournie par le client.
 const SHARED = {
-  "Vinaigre de nettoyage 20° Ultraconcentré": {domaine:"Hygiène générale", gamme:"Essentiel"},
-  "Bicarbonate de soude": {domaine:"Hygiène générale", gamme:"Envol"}
+  "Vinaigre de nettoyage 20° Ultraconcentré": {gamme:"Essentiel"},
+  "Bicarbonate de soude": {gamme:"Envol"}
 };
 const ALLPROD=[];
 for(const cat in PART){ PART[cat].forEach(p=>{
+  const newCat = JAVEL.has(p[0]) ? "Désinfection / Javel" : (CATMAP[cat]||cat);
   const sh = SHARED[p[0]];
   ALLPROD.push({
-    name:p[0], marque:p[1], cat:cat, forme:formeOf(p[0]),
+    name:p[0], marque:p[1], cat:newCat, forme:formeOf(p[0]),
     pubs: sh ? ['Professionnel','Particulier'] : ['Particulier'],
-    proDomaine: sh?sh.domaine:null, proGamme: sh?sh.gamme:null, shared: !!sh
+    proGamme: sh?sh.gamme:null, shared: !!sh
   });
 });}
 // Produits Pro (Nectra) propres : non listés dans la source → univers Pro à compléter.
 
 /* ---------- ÉTAT ---------- */
-let state = { universe:null, gamme:null, domaine:null, categorie:null };
+let state = { universe:null, proCat:null, gamme:null, categorie:null };
 
 /* ---------- FILTRES ---------- */
 function buildMarqueFilter(){
@@ -253,11 +279,13 @@ function buildMarqueFilter(){
     `<label class="fopt"><input type="checkbox" class="fMarque" value="${esc(m)}">${esc(m)}</label>`).join('');
 }
 function buildCatFilter(){
-  const opt=(v,cls)=>`<label class="fopt"><input type="checkbox" class="${cls}" value="${esc(v)}">${esc(v)}</label>`;
-  let h='<div class="fsub">Professionnel</div>';
-  h+=PRO.domaines.map(d=>opt(d,'fCat')).join('');
-  h+='<div class="fsub">Particulier</div>';
-  h+=Object.keys(PART).map(c=>opt(c,'fCat')).join('');
+  const opt=v=>`<label class="fopt"><input type="checkbox" class="fCat" value="${esc(v)}">${esc(v)}</label>`;
+  const both=CATS.filter(c=>c.pubs.length===2).map(c=>c.name);
+  const proOnly=CATS.filter(c=>c.pubs.length===1&&c.pubs[0]==='Professionnel').map(c=>c.name);
+  const partOnly=CATS.filter(c=>c.pubs.length===1&&c.pubs[0]==='Particulier').map(c=>c.name);
+  let h='<div class="fsub">Communes (Pro + Particulier)</div>'+both.map(opt).join('');
+  h+='<div class="fsub">Professionnel</div>'+proOnly.map(opt).join('');
+  h+='<div class="fsub">Particulier</div>'+partOnly.map(opt).join('');
   document.getElementById('filterCat').innerHTML=h;
 }
 function sel(cls){return [...document.querySelectorAll('.'+cls+':checked')].map(c=>c.value);}
@@ -273,9 +301,9 @@ function resetFilters(){
 document.addEventListener('change',e=>{if(e.target.matches('.fPublic,.fCat,.fMarque,.fForme'))render();});
 
 /* ---------- NAVIGATION ---------- */
-function goHome(){state={universe:null,gamme:null,domaine:null,categorie:null};render();}
-function goUniverse(u){state={universe:u,gamme:null,domaine:null,categorie:null};render();}
-function goDomaine(d){state.domaine=d;state.gamme=null;render();}
+function goHome(){state={universe:null,proCat:null,gamme:null,categorie:null};render();}
+function goUniverse(u){state={universe:u,proCat:null,gamme:null,categorie:null};render();}
+function goProCat(c){state.proCat=c;state.gamme=null;render();}
 function goGamme(g){state.gamme=g;render();}
 function goCategorie(c){state.categorie=c;render();}
 
@@ -288,7 +316,7 @@ function render(){
   if(anyFilter()){c.innerHTML=viewFiltered();return;}
   if(!state.universe){c.innerHTML=viewHome();return;}
   if(state.universe==='pro'){
-    if(!state.domaine){c.innerHTML=viewProDomaines();return;}
+    if(!state.proCat){c.innerHTML=viewProCats();return;}
     if(!state.gamme){c.innerHTML=viewProGammes();return;}
     c.innerHTML=viewProProducts();return;
   }
@@ -307,7 +335,7 @@ function renderCrumb(){
   }
   if(state.universe==='pro'){
     parts.push(`<a onclick="goUniverse('pro')">Professionnel</a>`);
-    if(state.domaine) parts.push(`<a onclick="goDomaine(${JSON.stringify(state.domaine).replace(/"/g,'&quot;')})">${esc(state.domaine)}</a>`);
+    if(state.proCat) parts.push(`<a onclick="goProCat(${JSON.stringify(state.proCat).replace(/"/g,'&quot;')})">${esc(state.proCat)}</a>`);
     if(state.gamme) parts.push(`<span>Gamme ${esc(state.gamme)}</span>`);
   }
   if(state.universe==='part'){
@@ -323,22 +351,22 @@ function viewHome(){
     <p class="lead">Choisissez un univers, ou filtrez directement à gauche par public, catégorie, marque ou forme.</p>
     <div class="home-hero">
       <div class="uni-card pro" onclick="goUniverse('pro')">
-        <div><h2>PROFESSIONNEL</h2><p>Par domaine d'application, puis gamme (Envol · Essentiel · Expert)</p></div>
+        <div><h2>PROFESSIONNEL</h2><p>Par catégorie, puis gamme (Envol · Essentiel · Expert)</p></div>
         <div class="go">Entrer →</div>
       </div>
       <div class="uni-card part" onclick="goUniverse('part')">
-        <div><h2>PARTICULIER</h2><p>${Object.keys(PART).length} catégories à plat</p></div>
+        <div><h2>PARTICULIER</h2><p>${catsForPublic('Particulier').length} catégories à plat, sans gamme</p></div>
         <div class="go">Entrer →</div>
       </div>
     </div>
-    <p class="note">Public, catégorie, marque et forme sont des attributs filtrables : dès qu'un filtre est coché à gauche, le catalogue s'affiche à plat (résultats filtrés), tous univers confondus.</p>`;
+    <p class="note">Catégories unifiées (un seul vocabulaire pour les deux publics). Public, catégorie, marque et forme sont des attributs filtrables : dès qu'un filtre est coché, le catalogue s'affiche à plat, tous univers confondus.</p>`;
 }
 
 function viewFiltered(){
   const pubs=selectedPublics(), cats=selectedCats(), marques=selectedMarques(), formes=selectedFormes();
   let res=ALLPROD.filter(p=>
     (!pubs.length||pubs.some(x=>p.pubs.includes(x))) &&
-    (!cats.length||cats.includes(p.cat)||(p.proDomaine&&cats.includes(p.proDomaine))) &&
+    (!cats.length||cats.includes(p.cat)) &&
     (!marques.length||marques.includes(p.marque)) &&
     (!formes.length||formes.includes(p.forme))
   );
@@ -350,7 +378,7 @@ function viewFiltered(){
     .concat(formes.map(v=>['Forme',v]))
     .map(([k,v])=>`<span class="fchip"><b>${k} :</b> ${esc(v)}</span>`).join('');
   // Le Pro n'a pas encore de produits propres (hors exemples partagés) → prévenir
-  const proCible = pubs.includes('Professionnel') || cats.some(c=>PRO.domaines.includes(c));
+  const proCible = pubs.includes('Professionnel') || cats.some(c=>{const cc=CATS.find(x=>x.name===c);return cc&&cc.pubs.includes('Professionnel');});
   let proNote = proCible
     ? `<div class="empty" style="margin-bottom:16px">Côté Professionnel (Nectra), seuls les <b>produits partagés (exemple)</b> sont rattachés au Pro pour l'instant ; le reste du catalogue Nectra est à compléter.</div>` : '';
 
@@ -362,23 +390,25 @@ function viewFiltered(){
     <div class="plist">${res.map(prodRow).join('')}</div>`;
 }
 
-function viewProDomaines(){
+function viewProCats(){
+  const cats=catsForPublic('Professionnel');
   return `<span class="badge pro">Professionnel</span>
-    <h1>Domaines d'application</h1>
-    <p class="lead">Sélectionnez un domaine.</p>
-    <div class="grid">${PRO.domaines.map(d=>`
-      <div class="card pro" onclick="goDomaine(${JSON.stringify(d).replace(/"/g,'&quot;')})">
-        <div class="t">${esc(d)}</div>
-        <div class="meta">3 gammes</div>
+    <h1>Catégories</h1>
+    <p class="lead">Sélectionnez une catégorie. Chacune est déclinée en gammes (Envol · Essentiel · Expert).</p>
+    <div class="grid">${cats.map(c=>{
+      const shared=CATS.find(x=>x.name===c).pubs.length===2;
+      return `<div class="card pro" onclick="goProCat(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <div class="t">${esc(c)}</div>
+        <div class="meta">3 gammes${shared?' · aussi côté Particulier':''}</div>
         <div class="arrow">Explorer →</div>
-      </div>`).join('')}</div>`;
+      </div>`;}).join('')}</div>`;
 }
 
 function viewProGammes(){
-  return `<span class="badge pro">${esc(state.domaine)}</span>
-    <h1>Nos gammes</h1>
-    <p class="lead">Gammes disponibles pour « ${esc(state.domaine)} ».</p>
-    <div class="grid">${PRO.gammes.map(g=>`
+  return `<span class="badge pro">${esc(state.proCat)}</span>
+    <h1>Gammes</h1>
+    <p class="lead">Gammes disponibles pour « ${esc(state.proCat)} ».</p>
+    <div class="grid">${GAMMES.map(g=>`
       <div class="card pro" onclick="goGamme('${g}')">
         <div class="t">Gamme ${g}</div>
         <div class="arrow">Voir les produits →</div>
@@ -386,11 +416,11 @@ function viewProGammes(){
 }
 
 function viewProProducts(){
-  const prods=ALLPROD.filter(p=>p.proDomaine===state.domaine && p.proGamme===state.gamme);
-  const head=`<span class="badge pro">${esc(state.domaine)} › Gamme ${esc(state.gamme)}</span>
+  const prods=ALLPROD.filter(p=>p.cat===state.proCat && p.pubs.includes('Professionnel') && p.proGamme===state.gamme);
+  const head=`<span class="badge pro">${esc(state.proCat)} › Gamme ${esc(state.gamme)}</span>
     <h1>Gamme ${esc(state.gamme)}</h1>`;
   const list = prods.length
-    ? `<div class="count">${prods.length} produit partagé${prods.length>1?'s':''} Pro + Particulier (exemple)</div>
+    ? `<div class="count">${prods.length} produit${prods.length>1?'s':''} (exemple partagé Pro + Particulier)</div>
        <div class="plist">${prods.map(prodRow).join('')}</div>`
     : '';
   return head+list+`<div class="empty">
@@ -400,25 +430,25 @@ function viewProProducts(){
 }
 
 function viewPartCategories(){
-  const cats=Object.keys(PART).filter(cat=>matchMarque(PART[cat]).length>0 || PART[cat].length===0);
+  const cats=catsForPublic('Particulier');
   return `<span class="badge part">Particulier</span>
     <h1>Catégories</h1>
-    <p class="lead">Sélectionnez une catégorie.</p>
-    <div class="grid">${cats.map(cat=>{
-      const n=matchMarque(PART[cat]).length;
-      const empty=PART[cat].length===0;
-      return `<div class="card part" onclick="goCategorie(${JSON.stringify(cat).replace(/"/g,'&quot;')})">
-        <div class="t">${esc(cat)}</div>
-        <div class="meta">${empty?'À compléter (Arcyvert)':n+' produit'+(n>1?'s':'')}</div>
+    <p class="lead">Sélectionnez une catégorie (pas de gamme côté Particulier).</p>
+    <div class="grid">${cats.map(c=>{
+      const n=prodCount(c,'Particulier');
+      const shared=CATS.find(x=>x.name===c).pubs.length===2;
+      return `<div class="card part" onclick="goCategorie(${JSON.stringify(c).replace(/"/g,'&quot;')})">
+        <div class="t">${esc(c)}</div>
+        <div class="meta">${n?n+' produit'+(n>1?'s':''):'À compléter (Arcyvert)'}${shared?' · aussi côté Pro':''}</div>
         <div class="arrow">Voir →</div>
       </div>`;}).join('')}</div>`;
 }
 
 function viewPartProducts(){
-  const prods=ALLPROD.filter(p=>p.cat===state.categorie);
+  const prods=ALLPROD.filter(p=>p.cat===state.categorie && p.pubs.includes('Particulier'));
   const head=`<span class="badge part">Particulier</span><h1>${esc(state.categorie)}</h1>`;
-  if((PART[state.categorie]||[]).length===0)
-    return head+`<div class="empty">Produits Arcyvert à récupérer auprès du client.</div>`;
+  if(prods.length===0)
+    return head+`<div class="empty">Produits à compléter (catégorie Arcyvert non détaillée dans la source).</div>`;
   return head+`<div class="count">${prods.length} produit${prods.length>1?'s':''}</div>
     <div class="plist">${prods.map(prodRow).join('')}</div>`;
 }
@@ -438,11 +468,8 @@ function prodRow(p){
 }
 
 /* ---------- HELPERS ---------- */
-function matchMarque(list){
-  const sel=selectedMarques();
-  if(!sel.length) return list;
-  return list.filter(p=>sel.includes(p[1]));
-}
+function catsForPublic(pub){return CATS.filter(c=>c.pubs.includes(pub)).map(c=>c.name);}
+function prodCount(cat,pub){return ALLPROD.filter(p=>p.cat===cat&&p.pubs.includes(pub)).length;}
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 buildMarqueFilter();
