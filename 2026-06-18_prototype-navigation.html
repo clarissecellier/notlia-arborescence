@@ -117,7 +117,7 @@
     </div>
     <div class="fgroup">
       <div class="ftitle">Catégorie</div>
-      <div class="fgroup scroll" id="filterCat"></div>
+      <div id="filterCat"></div>
     </div>
     <div class="fgroup">
       <div class="ftitle">Marque</div>
@@ -129,7 +129,7 @@
       <label class="fopt"><input type="checkbox" class="fForme" value="Poudre">Poudre</label>
       <label class="fopt"><input type="checkbox" class="fForme" value="Solide">Solide</label>
     </div>
-    <div class="fgroup">
+    <div class="fgroup" id="gammeGroup" style="display:none">
       <div class="ftitle">Gamme <span style="font-weight:400;color:var(--muted)">(Pro)</span></div>
       <label class="fopt"><input type="checkbox" class="fGamme" value="Envol">Envol</label>
       <label class="fopt"><input type="checkbox" class="fGamme" value="Essentiel">Essentiel</label>
@@ -284,15 +284,20 @@ function buildMarqueFilter(){
   document.getElementById('filterMarque').innerHTML = MARQUES.map(m =>
     `<label class="fopt"><input type="checkbox" class="fMarque" value="${esc(m)}">${esc(m)}</label>`).join('');
 }
-function buildCatFilter(){
-  const opt=v=>`<label class="fopt"><input type="checkbox" class="fCat" value="${esc(v)}">${esc(v)}</label>`;
-  const both=CATS.filter(c=>c.pubs.length===2).map(c=>c.name);
-  const proOnly=CATS.filter(c=>c.pubs.length===1&&c.pubs[0]==='Professionnel').map(c=>c.name);
-  const partOnly=CATS.filter(c=>c.pubs.length===1&&c.pubs[0]==='Particulier').map(c=>c.name);
-  let h='<div class="fsub">Communes (Pro + Particulier)</div>'+both.map(opt).join('');
-  h+='<div class="fsub">Professionnel</div>'+proOnly.map(opt).join('');
-  h+='<div class="fsub">Particulier</div>'+partOnly.map(opt).join('');
-  document.getElementById('filterCat').innerHTML=h;
+// Filtres conditionnels : la liste des catégories dépend du Public coché,
+// et le filtre Gamme n'apparaît que si "Professionnel" est sélectionné.
+function refreshConditionalFilters(){
+  const pubs=selectedPublics();
+  const checked=new Set(selectedCats());
+  const names = pubs.length
+    ? CATS.filter(c=>pubs.some(p=>c.pubs.includes(p))).map(c=>c.name)
+    : CATS.map(c=>c.name);
+  const opt=v=>`<label class="fopt"><input type="checkbox" class="fCat" value="${esc(v)}"${checked.has(v)?' checked':''}>${esc(v)}</label>`;
+  document.getElementById('filterCat').innerHTML = names.map(opt).join('');
+  const showGamme = pubs.includes('Professionnel');
+  const gg=document.getElementById('gammeGroup');
+  gg.style.display = showGamme ? '' : 'none';
+  if(!showGamme) document.querySelectorAll('.fGamme').forEach(c=>c.checked=false);
 }
 function sel(cls){return [...document.querySelectorAll('.'+cls+':checked')].map(c=>c.value);}
 function selectedMarques(){return sel('fMarque');}
@@ -305,7 +310,10 @@ function resetFilters(){
   document.querySelectorAll('.fPublic,.fCat,.fMarque,.fForme,.fGamme').forEach(c=>c.checked=false);
   render();
 }
-document.addEventListener('change',e=>{if(e.target.matches('.fPublic,.fCat,.fMarque,.fForme,.fGamme'))render();});
+document.addEventListener('change',e=>{
+  if(e.target.matches('.fPublic')) refreshConditionalFilters();
+  if(e.target.matches('.fPublic,.fCat,.fMarque,.fForme,.fGamme')) render();
+});
 
 /* ---------- NAVIGATION ---------- */
 function goHome(){state={universe:null,proCat:null,categorie:null};render();}
@@ -468,7 +476,7 @@ function prodCount(cat,pub){return ALLPROD.filter(p=>p.cat===cat&&p.pubs.include
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 buildMarqueFilter();
-buildCatFilter();
+refreshConditionalFilters();
 render();
 </script>
 </body>
