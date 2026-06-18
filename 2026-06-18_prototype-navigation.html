@@ -19,6 +19,9 @@
   .topbar{background:#fff;border-bottom:1px solid var(--line);padding:12px 28px;
     display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:10}
   .brand-logo{height:42px;width:auto;cursor:pointer}
+  .proto-label{display:flex;flex-direction:column;line-height:1.25;border-left:1px solid var(--line);padding-left:18px}
+  .proto-label strong{font-size:13px;color:var(--grey);font-weight:700}
+  .proto-label span{font-size:11px;color:var(--muted)}
   .brand{font-weight:800;letter-spacing:2px;font-size:18px}
   .brand small{font-weight:500;color:var(--muted);letter-spacing:.5px;font-size:11px;display:block}
   .switch{display:flex;gap:6px;margin-left:auto}
@@ -33,9 +36,12 @@
   aside{width:230px;flex:0 0 230px;background:#fff;border:1px solid var(--line);
     border-radius:14px;padding:18px 18px;position:sticky;top:84px}
   aside h3{font-size:11px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted);margin:0 0 12px}
-  .fgroup{margin-bottom:20px}
-  .fgroup .ftitle{font-size:12px;font-weight:700;margin-bottom:8px}
-  .fopt{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;cursor:pointer;color:#333}
+  .fgroup{margin-bottom:18px}
+  .fgroup .ftitle{font-size:12px;font-weight:700;margin-bottom:8px;color:var(--grey)}
+  .fgroup.scroll{max-height:210px;overflow:auto;border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+  .fsub{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin:8px 0 4px;font-weight:700}
+  .fsub:first-child{margin-top:0}
+  .fopt{display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;cursor:pointer;color:#444}
   .fopt input{accent-color:var(--accent);cursor:pointer}
   .reset{font-size:12px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;padding:0}
 
@@ -63,9 +69,14 @@
   .prod{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px;
     display:flex;justify-content:space-between;align-items:center;gap:10px}
   .prod .pm{font-size:11px;color:#fff;border-radius:999px;padding:2px 8px;white-space:nowrap}
+  .prod .psub{font-size:11px;color:var(--muted)}
   .empty{background:var(--soft);border:1px dashed var(--line);border-radius:12px;padding:28px;
     text-align:center;color:var(--muted);font-size:14px}
   .count{font-size:13px;color:var(--muted);margin-bottom:14px}
+  .fchips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 18px}
+  .fchip{background:var(--part-bg);color:var(--part);border:1px solid var(--part);border-radius:999px;
+    padding:4px 12px;font-size:12px}
+  .fchip b{font-weight:700}
   .tag-pro{background:var(--pro)} .tag-part{background:var(--part)}
   .badge{display:inline-block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;
     padding:3px 9px;border-radius:6px;margin-bottom:10px}
@@ -86,6 +97,7 @@
 
 <div class="topbar">
   <img class="brand-logo" src="assets/logo-notilia.png" alt="NOTILIA Groupe" onclick="goHome()">
+  <div class="proto-label"><strong>Refonte d'arborescence</strong><span>réalisé par APPO</span></div>
   <div class="switch">
     <button class="pro" id="swPro" onclick="goUniverse('pro')">Professionnel</button>
     <button class="part" id="swPart" onclick="goUniverse('part')">Particulier</button>
@@ -95,6 +107,15 @@
 <div class="layout">
   <aside>
     <h3>Filtres</h3>
+    <div class="fgroup">
+      <div class="ftitle">Public</div>
+      <label class="fopt"><input type="checkbox" class="fPublic" value="Professionnel">Professionnel</label>
+      <label class="fopt"><input type="checkbox" class="fPublic" value="Particulier">Particulier</label>
+    </div>
+    <div class="fgroup">
+      <div class="ftitle">Catégorie</div>
+      <div class="fgroup scroll" id="filterCat"></div>
+    </div>
     <div class="fgroup">
       <div class="ftitle">Marque</div>
       <div id="filterMarque"></div>
@@ -194,21 +215,45 @@ const PART = {
   "Insecticide":[]      // Arcyvert — à compléter
 };
 
+/* ---------- INDEX PRODUITS À PLAT (pour la recherche à facettes) ---------- */
+// Forme estimée à partir du nom (la donnée forme n'est pas structurée dans la source).
+function formeOf(name){
+  const t=name.toLowerCase();
+  if(/poudre|cristaux|bicarbonate(?!.*gélifié)|terre de sommières|blanc de meudon|pierre d'argile|acide oxalique|acide citrique|soude caustique/.test(t)) return 'Poudre';
+  if(/savon noir mou|mastic|terre de sommières|blanc de meudon/.test(t)) return 'Solide';
+  return 'Liquide';
+}
+const ALLPROD=[];
+for(const cat in PART){ PART[cat].forEach(p=> ALLPROD.push({name:p[0],marque:p[1],pub:'Particulier',cat:cat,forme:formeOf(p[0])})); }
+// Produits Pro (Nectra) : non listés dans la source → l'univers Pro reste à compléter.
+
 /* ---------- ÉTAT ---------- */
 let state = { universe:null, gamme:null, domaine:null, categorie:null };
 
 /* ---------- FILTRES ---------- */
 function buildMarqueFilter(){
-  const box = document.getElementById('filterMarque');
-  box.innerHTML = MARQUES.map(m =>
-    `<label class="fopt"><input type="checkbox" class="fMarque" value="${m}">${m}</label>`).join('');
+  document.getElementById('filterMarque').innerHTML = MARQUES.map(m =>
+    `<label class="fopt"><input type="checkbox" class="fMarque" value="${esc(m)}">${esc(m)}</label>`).join('');
 }
-function selectedMarques(){return [...document.querySelectorAll('.fMarque:checked')].map(c=>c.value);}
+function buildCatFilter(){
+  const opt=(v,cls)=>`<label class="fopt"><input type="checkbox" class="${cls}" value="${esc(v)}">${esc(v)}</label>`;
+  let h='<div class="fsub">Professionnel</div>';
+  h+=PRO.domaines.map(d=>opt(d,'fCat')).join('');
+  h+='<div class="fsub">Particulier</div>';
+  h+=Object.keys(PART).map(c=>opt(c,'fCat')).join('');
+  document.getElementById('filterCat').innerHTML=h;
+}
+function sel(cls){return [...document.querySelectorAll('.'+cls+':checked')].map(c=>c.value);}
+function selectedMarques(){return sel('fMarque');}
+function selectedPublics(){return sel('fPublic');}
+function selectedCats(){return sel('fCat');}
+function selectedFormes(){return sel('fForme');}
+function anyFilter(){return selectedPublics().length+selectedCats().length+selectedMarques().length+selectedFormes().length>0;}
 function resetFilters(){
-  document.querySelectorAll('.fMarque,.fForme').forEach(c=>c.checked=false);
+  document.querySelectorAll('.fPublic,.fCat,.fMarque,.fForme').forEach(c=>c.checked=false);
   render();
 }
-document.addEventListener('change',e=>{if(e.target.matches('.fMarque,.fForme'))render();});
+document.addEventListener('change',e=>{if(e.target.matches('.fPublic,.fCat,.fMarque,.fForme'))render();});
 
 /* ---------- NAVIGATION ---------- */
 function goHome(){state={universe:null,gamme:null,domaine:null,categorie:null};render();}
@@ -223,6 +268,7 @@ function render(){
   document.getElementById('swPart').classList.toggle('active',state.universe==='part');
   renderCrumb();
   const c = document.getElementById('content');
+  if(anyFilter()){c.innerHTML=viewFiltered();return;}
   if(!state.universe){c.innerHTML=viewHome();return;}
   if(state.universe==='pro'){
     if(!state.domaine){c.innerHTML=viewProDomaines();return;}
@@ -237,6 +283,11 @@ function render(){
 
 function renderCrumb(){
   const parts=[`<a onclick="goHome()">Accueil</a>`];
+  if(anyFilter()){
+    parts.push(`<span>Résultats filtrés</span>`);
+    document.getElementById('crumb').innerHTML=parts.join(' <span class="sep">›</span> ');
+    return;
+  }
   if(state.universe==='pro'){
     parts.push(`<a onclick="goUniverse('pro')">Professionnel</a>`);
     if(state.domaine) parts.push(`<a onclick="goDomaine(${JSON.stringify(state.domaine).replace(/"/g,'&quot;')})">${esc(state.domaine)}</a>`);
@@ -252,7 +303,7 @@ function renderCrumb(){
 
 function viewHome(){
   return `<h1>Catalogue NOTILIA</h1>
-    <p class="lead">Choisissez votre univers. Marque et forme se filtrent à gauche.</p>
+    <p class="lead">Choisissez un univers, ou filtrez directement à gauche par public, catégorie, marque ou forme.</p>
     <div class="home-hero">
       <div class="uni-card pro" onclick="goUniverse('pro')">
         <div><h2>PROFESSIONNEL</h2><p>Par domaine d'application, puis gamme (Envol · Essentiel · Expert)</p></div>
@@ -263,7 +314,39 @@ function viewHome(){
         <div class="go">Entrer →</div>
       </div>
     </div>
-    <p class="note">Public (Pro/Particulier) et Marque sont aussi des attributs filtrables sur chaque produit.</p>`;
+    <p class="note">Public, catégorie, marque et forme sont des attributs filtrables : dès qu'un filtre est coché à gauche, le catalogue s'affiche à plat (résultats filtrés), tous univers confondus.</p>`;
+}
+
+function viewFiltered(){
+  const pubs=selectedPublics(), cats=selectedCats(), marques=selectedMarques(), formes=selectedFormes();
+  let res=ALLPROD.filter(p=>
+    (!pubs.length||pubs.includes(p.pub)) &&
+    (!cats.length||cats.includes(p.cat)) &&
+    (!marques.length||marques.includes(p.marque)) &&
+    (!formes.length||formes.includes(p.forme))
+  );
+  // Récap des filtres actifs
+  const chips=[]
+    .concat(pubs.map(v=>['Public',v]))
+    .concat(cats.map(v=>['Catégorie',v]))
+    .concat(marques.map(v=>['Marque',v]))
+    .concat(formes.map(v=>['Forme',v]))
+    .map(([k,v])=>`<span class="fchip"><b>${k} :</b> ${esc(v)}</span>`).join('');
+  // Le Pro n'a pas encore de produits → prévenir si l'utilisateur cible le Pro
+  const proCible = pubs.includes('Professionnel') || cats.some(c=>PRO.domaines.includes(c));
+  let proNote = proCible
+    ? `<div class="empty" style="margin-bottom:16px">Côté Professionnel (Nectra), les produits ne sont pas encore listés dans la source : aucun résultat Pro à afficher pour l'instant.</div>` : '';
+
+  let head=`<h1>Résultats filtrés</h1>
+    <div class="fchips">${chips}</div>`;
+  if(res.length===0)
+    return head+proNote+`<div class="empty">Aucun produit ne correspond à cette combinaison de filtres.</div>`;
+  return head+proNote+`<div class="count">${res.length} produit${res.length>1?'s':''}</div>
+    <div class="plist">${res.map(p=>`
+      <div class="prod">
+        <span>${esc(p.name)}<br><span class="psub">${esc(p.cat)} · ${esc(p.forme)}</span></span>
+        <span class="pm tag-part">${esc(p.marque)}</span>
+      </div>`).join('')}</div>`;
 }
 
 function viewProDomaines(){
@@ -347,6 +430,7 @@ function matchMarque(list){
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 buildMarqueFilter();
+buildCatFilter();
 render();
 </script>
 </body>
