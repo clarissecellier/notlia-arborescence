@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOTILIA — Argumentaire de la refonte d'arborescence</title>
+<style>
+  :root{--ink:#595959;--muted:#8a8a8a;--line:#e2e2e2;--grey:#707070;
+        --orange:#e95a28;--green:#34a23d;--orange-bg:#fdefe8;--green-bg:#ecf6ed;--grey-bg:#f4f4f4}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fafafa;color:var(--ink);line-height:1.6;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif}
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:12px 28px;
+    display:flex;align-items:center;gap:18px;position:sticky;top:0;z-index:10}
+  .topbar img{height:40px}
+  .topbar .tag{font-size:11px;color:var(--muted);border-left:1px solid var(--line);padding-left:18px;line-height:1.3}
+  .topbar .tag strong{display:block;color:var(--grey);font-size:13px}
+  .nav{margin-left:auto;display:flex;gap:8px}
+  .nav a{font-size:13px;font-weight:600;text-decoration:none;color:var(--grey);
+    border:1px solid var(--line);border-radius:999px;padding:8px 14px;white-space:nowrap}
+  .nav a:hover{border-color:var(--grey);background:var(--grey-bg)}
+
+  .wrap{max-width:860px;margin:0 auto;padding:48px 28px 80px}
+  .accent-bar{width:54px;height:4px;border-radius:3px;margin-bottom:22px;
+    background:linear-gradient(90deg,var(--green) 0 50%,var(--orange) 50% 100%)}
+  h1{font-size:30px;color:var(--grey);margin:0 0 6px;letter-spacing:.3px}
+  .lead{color:var(--muted);font-size:15px;margin:0 0 8px}
+  h2{font-size:21px;color:var(--grey);margin:46px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+  h3{font-size:16px;color:var(--orange);margin:26px 0 6px}
+  p{margin:0 0 14px}
+  ul{margin:0 0 16px;padding-left:20px}
+  li{margin:6px 0}
+  table{border-collapse:collapse;width:100%;margin:18px 0;font-size:14px}
+  th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+  th{background:var(--grey-bg);color:var(--grey);font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+  .pill{display:inline-block;font-size:11px;font-weight:700;border-radius:999px;padding:2px 9px}
+  .pill.both{background:var(--grey-bg);color:var(--grey)}
+  .pill.pro{background:var(--green-bg);color:var(--green)}
+  .pill.part{background:var(--orange-bg);color:var(--orange)}
+  .callout{border-radius:12px;padding:16px 20px;margin:18px 0;font-size:14px}
+  .callout.green{background:var(--green-bg);border-left:4px solid var(--green)}
+  .callout.orange{background:var(--orange-bg);border-left:4px solid var(--orange)}
+  .why{background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px 22px;margin:18px 0}
+  .why ol{margin:14px 0;padding-left:20px}
+  .why li{margin:9px 0}
+  .why b{color:var(--grey)}
+  code{background:var(--grey-bg);border-radius:6px;padding:1px 6px;font-size:13px}
+  .struct{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 22px;
+    font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;white-space:pre;overflow:auto;color:var(--grey)}
+  footer{max-width:860px;margin:0 auto;padding:24px 28px 60px;color:var(--muted);font-size:12px;border-top:1px solid var(--line)}
+  @media(max-width:620px){.topbar .tag{display:none}.nav a{padding:7px 10px}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <img src="assets/logo-notilia.png" alt="NOTILIA Groupe">
+  <div class="tag"><strong>Refonte d'arborescence</strong>réalisé par APPO</div>
+  <div class="nav">
+    <a href="index.html">Accueil</a>
+    <a href="2026-06-18_sitemap-notlia.html">Sitemap</a>
+    <a href="2026-06-18_prototype-navigation.html">Prototype</a>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="accent-bar"></div>
+  <h1>Pourquoi cette nouvelle arborescence</h1>
+  <p class="lead">Argumentaire de la refonte du site catalogue · juin 2026</p>
+
+  <h2>1. Le point de départ</h2>
+  <p>L'arborescence d'origine empilait <b>tout</b> dans la navigation :</p>
+  <ul>
+    <li><b>Professionnel</b> : Univers → Marque → Domaine → Gamme → Forme = <b>5 niveaux</b></li>
+    <li><b>Particulier</b> : Univers → Marque → Catégorie → Produit = <b>4 niveaux</b>, marque imposée comme entrée</li>
+  </ul>
+  <p>Résultat : une navigation profonde, un même besoin (ex. « détartrage ») éclaté entre plusieurs marques, et deux logiques de classement parallèles qui se chevauchent.</p>
+
+  <h2>2. Le principe retenu : navigation courte + attributs</h2>
+  <p>On ne garde dans la <b>navigation</b> que ce qui sert à <i>se repérer</i> (la catégorie). Tout ce qui <i>décrit</i> le produit passe en <b>attribut / filtre</b>.</p>
+  <table>
+    <tr><th>Élément</th><th>Avant</th><th>Après</th><th>Pourquoi</th></tr>
+    <tr><td><b>Public</b></td><td>Racine de l'arbo</td><td>Attribut (+ 2 entrées de menu)</td><td>Un produit peut servir les deux publics sans doublon</td></tr>
+    <tr><td><b>Marque</b></td><td>Niveau imposé</td><td>Attribut / filtre</td><td>On cherche un besoin, pas une marque</td></tr>
+    <tr><td><b>Forme</b></td><td>Niveau (Pro)</td><td>Attribut / filtre</td><td>Caractéristique produit, pas une rubrique</td></tr>
+    <tr><td><b>Gamme</b></td><td>Niveau (Pro)</td><td>Attribut / filtre (Pro)</td><td>Positionnement produit, pas une rubrique</td></tr>
+    <tr><td><b>Catégorie</b></td><td>2 systèmes parallèles</td><td>1 vocabulaire unifié</td><td>Voir §3</td></tr>
+  </table>
+  <div class="callout green"><b>Résultat : 2 niveaux maximum</b> (Univers → Catégorie → produit), au lieu de 4-5.</div>
+
+  <h2>3. La fusion des catégories <span style="font-weight:400;font-size:15px;color:var(--muted)">— le point clé</span></h2>
+
+  <h3>Le problème</h3>
+  <p>Le Pro était rangé par <b>domaine d'application</b> et le Particulier par <b>usage</b>. Deux vocabulaires pour les mêmes réalités, donc des <b>quasi-doublons</b> :</p>
+  <ul>
+    <li>« Hygiène du linge » <b>vs</b> « Linge »</li>
+    <li>« Hygiène sanitaire » <b>vs</b> « Sanitaires »</li>
+    <li>« Hygiène générale » <b>vs</b> « Nettoyage »</li>
+  </ul>
+  <p>Dans un filtre ou un plan de site, ces doublons apparaissent côte à côte : illisible pour le visiteur, et pénalisant pour le référencement.</p>
+
+  <h3>La solution : un vocabulaire de catégories unifié</h3>
+  <p><b>Une seule liste de catégories</b>, partagée par les deux publics. Chaque catégorie est étiquetée selon le public qui l'utilise. Les noms sont <b>alignés sur le vrai catalogue Nectra</b> (169 produits).</p>
+  <table>
+    <tr><th>Catégorie unifiée</th><th>Vient de (Pro)</th><th>Vient de (Particulier)</th><th>Public</th></tr>
+    <tr><td><b>Linge</b></td><td>Gamme Linge</td><td>Linge</td><td><span class="pill both">Pro + Part.</span></td></tr>
+    <tr><td><b>Sanitaires</b></td><td>Gamme Sanitaire</td><td>Sanitaires</td><td><span class="pill both">Pro + Part.</span></td></tr>
+    <tr><td><b>Nettoyage &amp; surfaces</b></td><td>Gamme Générale</td><td>Nettoyage</td><td><span class="pill both">Pro + Part.</span></td></tr>
+    <tr><td><b>Désinfection / Javel</b></td><td>Gamme Javel</td><td>(javels)</td><td><span class="pill both">Pro + Part.</span></td></tr>
+    <tr><td><b>Cuisine &amp; alimentaire</b></td><td>Gamme Alimentaire</td><td>—</td><td><span class="pill pro">Pro</span></td></tr>
+    <tr><td><b>Mains &amp; hygiène corporelle</b></td><td>Gamme Mains</td><td>—</td><td><span class="pill pro">Pro</span></td></tr>
+    <tr><td><b>Industrie · Enzyma' · Excellence</b></td><td>Gammes idem</td><td>—</td><td><span class="pill pro">Pro</span></td></tr>
+    <tr><td><b>Détartrage · Canalisations · Auto · Bricolage · Combustible · Extérieur · Piscine · Air intérieur · Insecticide</b></td><td>—</td><td>(idem)</td><td><span class="pill part">Particulier</span></td></tr>
+  </table>
+
+  <h3>Pourquoi c'est mieux</h3>
+  <div class="why">
+    <ol>
+      <li><b>Lisibilité</b> : un seul libellé par concept, la même logique pour pro et particulier.</li>
+      <li><b>Filtre propre</b> : une seule entrée « Sanitaires » au lieu de deux quasi-identiques.</li>
+      <li><b>SEO</b> : une page catégorie canonique par concept → pas de cannibalisation entre deux pages qui parlent de la même chose, autorité concentrée.</li>
+      <li><b>Maintenance</b> : une taxonomie à gérer, au lieu de deux à garder synchronisées.</li>
+      <li><b>Cohérence avec le réel</b> : les noms collent au catalogue Nectra existant.</li>
+      <li><b>Évolutivité</b> : un produit vendu aux deux publics = une seule fiche (attribut Public à deux valeurs), zéro doublon.</li>
+    </ol>
+  </div>
+
+  <h3>Affichage conditionnel</h3>
+  <p>La catégorie est commune, mais chaque univers n'en utilise qu'une partie : la navigation et les filtres <b>s'adaptent au public</b>. En Pro, on ne voit que les catégories Pro (et le filtre Gamme apparaît) ; en Particulier, seulement les siennes, sans gamme.</p>
+
+  <h2>4. Décisions tranchées grâce au vrai catalogue</h2>
+  <ul>
+    <li><b>Détartrage = Particulier uniquement</b> : le Pro n'a pas cette catégorie (ses détartrants sont rangés en Sanitaires / Cuisine).</li>
+    <li><b>Gamme et forme confirmées comme attributs</b> : le catalogue les porte exactement ainsi (Envol/Essentiel/Expert + Liquide/Poudre/Solide).</li>
+    <li><b>Excellence</b> : conservée comme catégorie Pro à part entière (à peupler en produits).</li>
+    <li><b>Produits réellement « partagés » Pro + Particulier : quasi nuls</b> — le Pro est la marque Nectra, le Particulier d'autres marques. Le mécanisme « fiche unique, double badge » reste prêt pour le cas où.</li>
+  </ul>
+
+  <h2>5. La structure finale</h2>
+  <div class="struct">PROFESSIONNEL (Nectra)              PARTICULIER (multi-marques)
+└── Catégorie                       └── Catégorie
+        └── produit                         └── produit
+   filtres : Gamme · Forme · Marque    filtres : Forme · Marque</div>
+  <p style="margin-top:14px">Attributs transverses : <b>Public · Catégorie · Forme · Gamme (Pro) · Marque</b>.</p>
+
+  <div class="callout orange">
+    <b>Reste à valider / compléter :</b> les produits Arcyvert (catégories Particulier encore vides), la validation des fusions de libellés Pro ↔ Particulier, et les produits de la catégorie Excellence.
+  </div>
+</div>
+
+<footer>Refonte d'arborescence · réalisé par APPO pour NOTILIA · document de travail confidentiel</footer>
+</body>
+</html>
