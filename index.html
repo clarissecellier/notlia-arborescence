@@ -3,22 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NOTLIA — Refonte d'arborescence</title>
+<title>NOTILIA — Refonte d'arborescence</title>
 <style>
-  :root{--ink:#1c2127;--muted:#6b7280;--line:#dde2e9;--accent:#2f6f7e}
+  :root{--ink:#595959;--muted:#8a8a8a;--line:#e2e2e2;--grey:#707070;
+        --orange:#e95a28;--green:#34a23d;--accent:var(--orange)}
   *{box-sizing:border-box}
-  body{margin:0;background:#fbfcfd;color:var(--ink);
+  body{margin:0;background:#fafafa;color:var(--ink);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
     min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px}
   .head{text-align:center;margin-bottom:40px}
+  .logo{height:64px;width:auto;margin-bottom:22px}
   .head .kicker{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
-  h1{font-size:30px;margin:0 0 8px;letter-spacing:.5px}
+  h1{font-size:30px;margin:0 0 8px;letter-spacing:.5px;color:var(--grey);font-weight:700}
   .head p{color:var(--muted);font-size:15px;margin:0}
+  .accent-bar{width:54px;height:4px;border-radius:3px;margin:18px auto 0;
+    background:linear-gradient(90deg,var(--green) 0 50%,var(--orange) 50% 100%)}
   .cards{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:760px;width:100%}
   .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px;text-decoration:none;
-    color:inherit;transition:.12s;display:flex;flex-direction:column;gap:8px}
-  .card:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(20,30,50,.1);transform:translateY(-2px)}
-  .card .t{font-size:18px;font-weight:700}
+    color:inherit;transition:.12s;display:flex;flex-direction:column;gap:8px;border-top:3px solid var(--green)}
+  .card:nth-child(2){border-top-color:var(--orange)}
+  .card:hover{border-color:var(--accent);box-shadow:0 8px 24px rgba(120,80,40,.12);transform:translateY(-2px)}
+  .card .t{font-size:18px;font-weight:700;color:var(--grey)}
   .card .d{font-size:13px;color:var(--muted);line-height:1.5}
   .card .go{margin-top:8px;font-size:13px;font-weight:700;color:var(--accent)}
   .full{grid-column:1 / -1}
@@ -28,9 +33,11 @@
 </head>
 <body>
   <div class="head">
-    <div class="kicker">APPO · pour NOTLIA</div>
+    <img class="logo" src="assets/logo-notilia.png" alt="NOTILIA Groupe">
+    <div class="kicker">APPO · pour NOTILIA</div>
     <h1>Refonte de l'arborescence</h1>
     <p>Site catalogue · proposition de structure · juin 2026</p>
+    <div class="accent-bar"></div>
   </div>
   <div class="cards">
     <a class="card full" href="2026-06-18_prototype-navigation.html">
