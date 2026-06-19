@@ -135,6 +135,7 @@
       <label class="fopt"><input type="checkbox" class="fGamme" value="Envol">Envol</label>
       <label class="fopt"><input type="checkbox" class="fGamme" value="Essentiel">Essentiel</label>
       <label class="fopt"><input type="checkbox" class="fGamme" value="Expert">Expert</label>
+      <label class="fopt"><input type="checkbox" class="fGamme" value="Excellence">Excellence</label>
     </div>
     <div class="fgroup">
       <div class="ftitle">Marque</div>
@@ -151,7 +152,7 @@
 
 <script>
 /* ---------- DONNÉES ---------- */
-const MARQUES = ["Nectra","Arcyvert","Mieuxa","Supermieuxa","A l'olivier"];
+const MARQUES = ["Nectra","Arcyvert","Mieuxa","Super Mieuxa","A l'Olivier"];
 
 // Vocabulaire de catégories UNIFIÉ (aligné sur le vrai catalogue Nectra). pubs = qui l'utilise.
 const CATS = [
@@ -163,7 +164,6 @@ const CATS = [
   {name:"Mains & hygiène corporelle", pubs:["Professionnel"]},
   {name:"Industrie", pubs:["Professionnel"]},
   {name:"Enzyma’", pubs:["Professionnel"]},
-  {name:"Excellence", pubs:["Professionnel"]},
   {name:"Détartrage", pubs:["Particulier"]},
   {name:"Canalisations & débouchage", pubs:["Particulier"]},
   {name:"Auto", pubs:["Particulier"]},
@@ -174,7 +174,7 @@ const CATS = [
   {name:"Air intérieur", pubs:["Particulier"]},
   {name:"Insecticide / nuisibles", pubs:["Particulier"]}
 ];
-const GAMMES = ["Envol","Essentiel","Expert"]; // sous-niveau Pro uniquement
+const GAMMES = ["Envol","Essentiel","Expert","Excellence"]; // sous-niveau Pro uniquement
 // Remappe les anciennes catégories Particulier vers le vocabulaire unifié
 const CATMAP = {
   "Auto":"Auto","Bricolage":"Bricolage","Combustible":"Combustible","Détartrage":"Détartrage",
@@ -196,9 +196,9 @@ const PART = {
     ["Essence de térébenthine","Mieuxa"],["Essence à la térébenthine","Mieuxa"],
     ["Huile de lin","Mieuxa"],["Huile de vaseline","Mieuxa"],["Mastic vitrier","Mieuxa"],
     ["Pétrole désaromatisé","Mieuxa"],["Siccatif","Mieuxa"],["White spirit brico","Mieuxa"],
-    ["White spirit sans odeur","Mieuxa"],["Nettoyant pinceaux","Supermieuxa"],
-    ["Substitut d'acétone","Supermieuxa"],["Substitut du trichloréthylène","Supermieuxa"],
-    ["Substitut du white spirit","Supermieuxa"],["Acide oxalique","A l'olivier"]
+    ["White spirit sans odeur","Mieuxa"],["Nettoyant pinceaux","Super Mieuxa"],
+    ["Substitut d'acétone","Super Mieuxa"],["Substitut du trichloréthylène","Super Mieuxa"],
+    ["Substitut du white spirit","Super Mieuxa"],["Acide oxalique","A l'Olivier"]
   ],
   "Combustible":[
     ["Alcogel","Mieuxa"],["Alcool à brûler","Mieuxa"],["Bioflam gel","Mieuxa"]
@@ -207,14 +207,14 @@ const PART = {
     ["Acide chlorhydrique 23%","Mieuxa"],["Détartrant concentré","Mieuxa"],
     ["Vinaigre ménager 14°","Mieuxa"],["Vinaigre ménager 14° gélifié citron","Mieuxa"],
     ["Vinaigre de nettoyage 20° Ultraconcentré","Mieuxa"],
-    ["Détartrant-Nettoyant Sanitaires (subst. acide chlorhydrique)","Supermieuxa"],
-    ["Acide citrique","A l'olivier"]
+    ["Détartrant-Nettoyant Sanitaires (subst. acide chlorhydrique)","Super Mieuxa"],
+    ["Acide citrique","A l'Olivier"]
   ],
   "Débouchage & canalisations":[
     ["Déboucheur canalisations gélifié","Mieuxa"],["Déboucheur canalisations liquide","Mieuxa"],
     ["Déboucheur canalisations à l'acide","Mieuxa"],["Lessive de soude","Mieuxa"],
     ["Soude caustique","Mieuxa"],
-    ["Désodorisant-Dégraissant Canalisations (subst. soude liquide)","Supermieuxa"]
+    ["Désodorisant-Dégraissant Canalisations (subst. soude liquide)","Super Mieuxa"]
   ],
   "Extérieur":[
     ["Anti-verdissures","Mieuxa"],["Eau de javel concentrée 9,6%","Mieuxa"],
@@ -238,13 +238,13 @@ const PART = {
     ["Vinaigre ménager pomme","Mieuxa"],["Vinaigre de nettoyage 14°","Mieuxa"],
     ["Vinaigre de nettoyage 8°","Mieuxa"],["Vinaigre de nettoyage 8° agrumes","Mieuxa"],
     ["Vinaigre de nettoyage 8° framboise","Mieuxa"],["Vinaigre de nettoyage 8° pomme","Mieuxa"],
-    ["Substitut d'alcool ménager","Supermieuxa"],["Substitut d'ammoniaque","Supermieuxa"],
-    ["Vinaigre ménager 8°","Supermieuxa"],["Bicarbonate de soude","A l'olivier"],
-    ["Bicarbonate de soude gélifié","A l'olivier"],["Blanc de Meudon","A l'olivier"],
-    ["Cristaux de soude","A l'olivier"],["Pierre d'argile citron","A l'olivier"],
-    ["Savon noir liquide","A l'olivier"],["Savon noir liquide amande","A l'olivier"],
-    ["Savon noir mou","A l'olivier"],["Savon noir prêt à l'emploi (PAE)","A l'olivier"],
-    ["Terre de Sommières","A l'olivier"]
+    ["Substitut d'alcool ménager","Super Mieuxa"],["Substitut d'ammoniaque","Super Mieuxa"],
+    ["Vinaigre ménager 8°","Super Mieuxa"],["Bicarbonate de soude","A l'Olivier"],
+    ["Bicarbonate de soude gélifié","A l'Olivier"],["Blanc de Meudon","A l'Olivier"],
+    ["Cristaux de soude","A l'Olivier"],["Pierre d'argile citron","A l'Olivier"],
+    ["Savon noir liquide","A l'Olivier"],["Savon noir liquide amande","A l'Olivier"],
+    ["Savon noir mou","A l'Olivier"],["Savon noir prêt à l'emploi (PAE)","A l'Olivier"],
+    ["Terre de Sommières","A l'Olivier"]
   ],
   "Piscine":[
     ["Acide chlorhydrique Spécial piscine (pH-)","Mieuxa"]
@@ -439,7 +439,7 @@ const SHARED = {
   "Eau de repassage lavande": {gamme:"Essentiel"}
 };
 const ALLPROD=[];
-// Particulier (Mieuxa, Supermieuxa, A l'olivier, Arcyvert)
+// Particulier (Mieuxa, Super Mieuxa, A l'Olivier, Arcyvert)
 for(const cat in PART){ PART[cat].forEach(p=>{
   const newCat = JAVEL.has(p[0]) ? "Désinfection / Javel" : (CATMAP[cat]||cat);
   const sh = SHARED[p[0]];
@@ -554,7 +554,7 @@ function viewHome(){
     <p class="lead">Choisissez un univers, ou filtrez directement à gauche par public, catégorie, marque ou forme.</p>
     <div class="home-hero">
       <div class="uni-card pro" onclick="goUniverse('pro')">
-        <div><h2>PROFESSIONNEL</h2><p>Par catégorie · gamme (Envol · Essentiel · Expert) en filtre</p></div>
+        <div><h2>PROFESSIONNEL</h2><p>Par catégorie · gamme (Envol · Essentiel · Expert · Excellence) en filtre</p></div>
         <div class="go">Entrer →</div>
       </div>
       <div class="uni-card part" onclick="goUniverse('part')">
@@ -599,7 +599,7 @@ function viewProCats(){
   const cats=catsForPublic('Professionnel');
   return `<span class="badge pro">Professionnel</span>
     <h1>Catégories</h1>
-    <p class="lead">Sélectionnez une catégorie. La gamme (Envol · Essentiel · Expert) se filtre à gauche.</p>
+    <p class="lead">Sélectionnez une catégorie. La gamme (Envol · Essentiel · Expert · Excellence) se filtre à gauche.</p>
     <div class="grid">${cats.map(c=>{
       const shared=CATS.find(x=>x.name===c).pubs.length===2;
       const n=prodCount(c,'Professionnel');
