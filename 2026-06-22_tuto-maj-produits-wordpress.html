@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NOTILIA — Tuto : mettre à jour les produits dans WordPress</title>
+<style>
+  :root{
+    --ink:#595959; --muted:#8a8a8a; --line:#e2e2e2; --soft:#f4f4f4; --grey:#707070;
+    --pro:#34a23d; --pro-bg:#ecf6ed;
+    --part:#e95a28; --part-bg:#fdefe8;
+    --accent:#e95a28;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:#fafafa;color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;line-height:1.55}
+
+  /* Top bar */
+  .topbar{background:#fff;border-bottom:1px solid var(--line);padding:12px 28px;
+    display:flex;align-items:center;gap:24px;position:sticky;top:0;z-index:10}
+  .brand-logo{height:42px;width:auto}
+  .backbtn{font-size:13px;font-weight:600;text-decoration:none;color:var(--grey);
+    border:1px solid var(--line);border-radius:999px;padding:8px 14px;white-space:nowrap}
+  .backbtn:hover{border-color:var(--grey);background:#f4f4f4}
+  .proto-label{display:flex;flex-direction:column;line-height:1.25;border-left:1px solid var(--line);padding-left:18px}
+  .proto-label strong{font-size:13px;color:var(--grey);font-weight:700}
+  .proto-label span{font-size:11px;color:var(--muted)}
+
+  .wrap{max-width:840px;margin:0 auto;padding:34px 28px 60px}
+
+  /* Header */
+  .head{text-align:center;margin-bottom:34px}
+  .head .kicker{font-size:12px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  h1{font-size:28px;margin:0 0 8px;letter-spacing:.3px;color:var(--grey);font-weight:700}
+  .head p{color:var(--muted);font-size:15px;margin:0}
+  .accent-bar{width:54px;height:4px;border-radius:3px;margin:18px auto 0;
+    background:linear-gradient(90deg,var(--pro) 0 50%,var(--part) 50% 100%)}
+
+  h2{font-size:19px;color:var(--grey);margin:38px 0 6px;font-weight:700}
+  h2 .num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+    border-radius:50%;background:var(--accent);color:#fff;font-size:15px;margin-right:10px;vertical-align:middle}
+  .sub{color:var(--muted);font-size:14px;margin:0 0 14px}
+  p{font-size:15px}
+  a{color:var(--accent)}
+
+  /* Boxes */
+  .box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px 22px;margin:16px 0}
+  .box.tip{border-left:4px solid var(--pro);background:var(--pro-bg)}
+  .box.warn{border-left:4px solid var(--part);background:var(--part-bg)}
+  .box.recap{border-top:3px solid var(--accent)}
+  .box h3{margin:0 0 10px;font-size:15px;color:var(--grey)}
+  .box .small{font-size:13px;color:var(--muted)}
+
+  /* Reminder grid avant/après */
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+  .ba .col{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .ba .col.before{border-top:3px solid #c2c2c2}
+  .ba .col.after{border-top:3px solid var(--pro)}
+  .ba h4{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--muted)}
+  .ba ul{margin:0;padding-left:18px;font-size:14px}
+  .ba li{margin-bottom:5px}
+
+  /* Reference tables */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;margin:10px 0}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700}
+  td .pill{display:inline-block;font-size:11px;font-weight:700;border-radius:6px;padding:2px 8px;margin:1px 2px 1px 0}
+  .pill.pro{background:var(--pro-bg);color:var(--pro)}
+  .pill.part{background:var(--part-bg);color:var(--part)}
+  .pill.both{background:#eef3fb;color:#3a6bb0}
+
+  /* Step screenshots */
+  figure{margin:14px 0}
+  figure img{width:100%;border:1px solid var(--line);border-radius:12px;display:block;
+    box-shadow:0 2px 10px rgba(20,30,50,.06)}
+  figure img.tight{max-width:360px}
+  figure img.mini{max-width:200px}
+  figcaption{font-size:12px;color:var(--muted);margin-top:8px;text-align:center;font-style:italic}
+
+  ol.steps{padding-left:20px}
+  ol.steps>li{margin-bottom:8px;font-size:15px}
+  .kbd{font-family:ui-monospace,Menlo,Consolas,monospace;background:var(--soft);
+    border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:13px}
+  .path{font-weight:700;color:var(--grey)}
+
+  ul.check{list-style:none;padding:0;margin:0}
+  ul.check li{padding:6px 0 6px 30px;position:relative;font-size:14.5px;border-bottom:1px solid var(--line)}
+  ul.check li:last-child{border-bottom:none}
+  ul.check li:before{content:"\2610";position:absolute;left:4px;top:5px;color:var(--accent);font-size:16px}
+
+  footer{border-top:1px solid var(--line);margin-top:46px;padding-top:18px;
+    color:var(--muted);font-size:12px;text-align:center}
+
+  @media(max-width:600px){.ba{grid-template-columns:1fr}.wrap{padding:24px 18px 48px}}
+  @media print{
+    .topbar{position:static}
+    body{background:#fff}
+    h2{break-after:avoid}
+    figure,.box{break-inside:avoid}
+  }
+</style>
+</head>
+<body>
+
+  <div class="topbar">
+    <img class="brand-logo" src="assets/logo-notilia.png" alt="NOTILIA Groupe">
+    <a class="backbtn" href="index.html">← Sommaire</a>
+    <div class="proto-label">
+      <strong>Tutoriel maintenance</strong>
+      <span>Mettre à jour les produits dans WordPress</span>
+    </div>
+  </div>
+
+  <div class="wrap">
+
+    <div class="head">
+      <div class="kicker">APPO · pour NOTILIA</div>
+      <h1>Mettre à jour les produits dans WordPress</h1>
+      <p>Comment ranger les produits existants selon la nouvelle arborescence · WooCommerce · juin 2026</p>
+      <div class="accent-bar"></div>
+    </div>
+
+    <!-- INTRO -->
+    <p>Ce guide explique, étape par étape, comment <strong>mettre à jour les produits déjà en ligne</strong>
+    pour qu'ils suivent la nouvelle structure. Il ne s'agit pas de créer de nouveaux produits, mais de
+    <strong>re-ranger l'existant</strong> : leur donner la bonne catégorie, la bonne marque, et renseigner les
+    bons attributs (Public, Forme, Gamme) qui servent désormais de filtres sur le site.</p>
+
+    <div class="box">
+      <h3>Ce qui change, en une phrase</h3>
+      <p style="margin:0">Avant, on naviguait par marque puis par gamme sur plusieurs niveaux. Désormais,
+      <strong>un seul niveau de navigation : la catégorie</strong>. Tout le reste (le public, la marque, la
+      forme, la gamme) devient un <strong>filtre</strong> renseigné sur la fiche produit.</p>
+    </div>
+
+    <div class="ba">
+      <div class="col before">
+        <h4>Avant</h4>
+        <ul>
+          <li>Entrée par marque imposée</li>
+          <li>4 à 5 niveaux de navigation</li>
+          <li>Un même besoin éclaté entre marques</li>
+        </ul>
+      </div>
+      <div class="col after">
+        <h4>Après</h4>
+        <ul>
+          <li>Entrée par catégorie (vocabulaire unifié)</li>
+          <li>2 niveaux : Univers › Catégorie</li>
+          <li>Marque, forme, gamme, public = filtres</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- OÙ SE RENSEIGNE QUOI -->
+    <div class="box warn">
+      <h3>Important : où se renseigne chaque information ?</h3>
+      <p style="margin:0 0 8px">Sur la fiche produit, ces informations <strong>ne sont pas toutes au même endroit</strong> :</p>
+      <table style="margin:0">
+        <tr><th>Information</th><th>Où la renseigner</th></tr>
+        <tr><td><strong>Catégorie</strong></td><td>Encart <span class="path">Catégories de produits</span> (colonne de droite)</td></tr>
+        <tr><td><strong>Marque</strong></td><td>Encart <span class="path">Marques</span> (colonne de droite)</td></tr>
+        <tr><td><strong>Public · Forme · Gamme</strong></td><td>Bloc <span class="path">Données produit</span> › onglet <span class="path">Attributs</span></td></tr>
+      </table>
+    </div>
+
+    <!-- REFERENCE -->
+    <h2>Le référentiel à garder sous les yeux</h2>
+    <p class="sub">Avant de toucher un produit, repérez sa marque et ses attributs. La liste de référence des catégories est celle que vous tenez de votre côté.</p>
+
+    <div class="box">
+      <h3>La marque et les attributs-filtres</h3>
+      <table>
+        <tr><th>Information</th><th>Valeurs possibles</th><th>Plusieurs valeurs&nbsp;?</th></tr>
+        <tr><td><strong>Marque</strong></td><td>NECTRA · A L'OLIVIER · ARCYVERT · MIEUXA · SUPERMIEUXA · Marques Fournisseurs</td><td>Non</td></tr>
+        <tr><td><strong>Public</strong></td><td>Professionnel · Particulier</td><td>Oui (un produit peut être les deux)</td></tr>
+        <tr><td><strong>Forme</strong></td><td>Liquide · Poudre · Solide</td><td>Non</td></tr>
+        <tr><td><strong>Gamme</strong> <span class="small">(Pro)</span></td><td>Envol · Essentiel · Expert · Excellence</td><td>Non</td></tr>
+      </table>
+      <p class="small" style="margin:6px 0 0">La <strong>Gamme</strong> ne concerne que les produits Pro (Nectra). Pour un produit Particulier, on la laisse vide.</p>
+    </div>
+
+    <!-- STEPS -->
+    <h2><span class="num">1</span>Ouvrir la liste des produits</h2>
+    <p class="sub">Dans le tableau de bord WordPress.</p>
+    <ol class="steps">
+      <li>Dans le menu de gauche, cliquez sur <span class="path">Produits › Tous les produits</span>.</li>
+      <li>Repérez le produit à mettre à jour (la barre <span class="kbd">Recherche produits</span> en haut à droite aide à le retrouver par son nom).</li>
+      <li>Survolez son nom et cliquez sur <span class="kbd">Modifier</span>.</li>
+    </ol>
+    <figure>
+      <img src="assets/tuto/01-liste-produits.png" alt="Liste des produits dans WordPress">
+      <figcaption>Produits › Tous les produits : la liste de tout le catalogue.</figcaption>
+    </figure>
+
+    <h2><span class="num">2</span>Corriger la catégorie</h2>
+    <p class="sub">À droite de l'écran d'édition, encart <strong>Catégories de produits</strong>.</p>
+    <ol class="steps">
+      <li>Dans l'encart <span class="path">Catégories de produits</span> (colonne de droite), <strong>cochez la bonne catégorie</strong> (selon votre liste de référence).</li>
+      <li><strong>Décochez les anciennes catégories</strong> qui ne servent plus (anciens libellés, entrées par marque, sous-catégories supprimées).</li>
+      <li>Objectif : <strong>une seule catégorie cochée</strong> par produit.</li>
+    </ol>
+    <figure>
+      <img class="tight" src="assets/tuto/02-categorie.jpg" alt="Encart Catégories de produits">
+      <figcaption>L'encart « Catégories de produits » : une seule case à cocher.</figcaption>
+    </figure>
+
+    <h2><span class="num">3</span>Choisir la marque</h2>
+    <p class="sub">Toujours dans la colonne de droite, encart <strong>Marques</strong> (juste au-dessus ou en-dessous des catégories).</p>
+    <ol class="steps">
+      <li>Dans l'encart <span class="path">Marques</span>, <strong>cochez la marque du produit</strong> (une seule).</li>
+      <li>Décochez toute marque qui ne correspond pas.</li>
+    </ol>
+    <figure>
+      <img class="tight" src="assets/tuto/03-marques.jpg" alt="Encart Marques">
+      <figcaption>L'encart « Marques » : une case cochée (ici NECTRA).</figcaption>
+    </figure>
+
+    <h2><span class="num">4</span>Renseigner les attributs (Public, Forme, Gamme)</h2>
+    <p class="sub">Dans le bloc <strong>Données produit</strong>, onglet <strong>Attributs</strong>.</p>
+    <ol class="steps">
+      <li>Dans le bloc central <span class="path">Données produit</span>, cliquez sur l'onglet <span class="kbd">Attributs</span>.</li>
+      <li>Les attributs <strong>Public</strong>, <strong>Forme</strong> et <strong>Gammes</strong> sont déjà présents. Pour chacun, dans <span class="kbd">Valeur(s)</span>, sélectionnez la valeur correspondante (voir le tableau ci-dessus).</li>
+      <li>Besoin d'ajouter un attribut manquant ? Utilisez <span class="kbd">Ajouter existant</span> puis choisissez-le dans la liste.</li>
+      <li>Laissez la case <span class="kbd">Visible sur la page produit</span> cochée pour que l'info apparaisse sur la fiche.</li>
+      <li>Cliquez sur <span class="kbd">Enregistrer les attributs</span>.</li>
+    </ol>
+    <figure>
+      <img src="assets/tuto/04-attributs.jpg" alt="Onglet Attributs avec Public, Forme et Gammes">
+      <figcaption>Onglet « Attributs » : Public, Forme et Gammes, chacun avec sa ou ses valeurs.</figcaption>
+    </figure>
+
+    <div class="box tip">
+      <h3>Cas particulier : un produit vendu Pro <em>et</em> Particulier</h3>
+      <p style="margin:0">On ne crée <strong>pas</strong> de seconde fiche. On garde un seul produit, et dans
+      l'attribut <strong>Public</strong> on sélectionne <strong>les deux valeurs</strong> (Professionnel + Particulier).
+      Le produit remontera alors automatiquement dans les deux univers. Une seule fiche, une seule maintenance.</p>
+    </div>
+    <figure>
+      <img src="assets/tuto/05-public-pro-particulier.png" alt="Attribut Public avec deux valeurs">
+      <figcaption>Attribut « Public » avec ses deux valeurs : Particulier + Professionnel.</figcaption>
+    </figure>
+
+    <h2><span class="num">5</span>Enregistrer</h2>
+    <ol class="steps">
+      <li>Cliquez sur le bouton bleu <span class="kbd">Mettre à jour</span> en haut à droite.</li>
+      <li>Le produit est rangé. Passez au suivant.</li>
+    </ol>
+    <figure>
+      <img class="mini" src="assets/tuto/06-mettre-a-jour.png" alt="Bouton Mettre à jour">
+      <figcaption>Le bouton « Mettre à jour » enregistre toute la fiche.</figcaption>
+    </figure>
+
+    <h2><span class="num">6</span>Gain de temps : modifier plusieurs produits d'un coup</h2>
+    <p class="sub">Pour réaffecter la même catégorie ou la même marque à beaucoup de produits.</p>
+    <ol class="steps">
+      <li>Dans <span class="path">Produits › Tous les produits</span>, cochez les produits concernés (cases à gauche).</li>
+      <li>En haut, menu <span class="kbd">Modification groupée</span>, puis cliquez sur <span class="kbd">Appliquer</span>.</li>
+      <li>Dans le panneau qui s'ouvre, ajoutez la <strong>catégorie</strong> et/ou la <strong>marque</strong> communes, puis <span class="kbd">Mettre à jour</span>.</li>
+      <li><strong>Attention</strong> : la modification groupée gère bien catégorie et marque, mais pas les attributs
+      fins (Public/Forme/Gamme propres à chaque produit) : ceux-là restent à renseigner produit par produit.</li>
+    </ol>
+    <figure>
+      <img src="assets/tuto/07-modification-groupee.png" alt="Modification groupée des catégories et marques">
+      <figcaption>La modification groupée : on assigne catégorie et marque à plusieurs produits en une fois.</figcaption>
+    </figure>
+
+    <h2><span class="num">7</span>Vérifier sur le site</h2>
+    <p class="sub">Pour s'assurer que le produit apparaît au bon endroit et répond aux filtres.</p>
+    <ol class="steps">
+      <li>Ouvrez le site côté visiteur.</li>
+      <li>Dans la colonne <strong>Filtres</strong>, testez <strong>Public</strong>, <strong>Catégories</strong>, <strong>Forme</strong> et <strong>Marques</strong> : le produit doit apparaître/disparaître correctement.</li>
+      <li>Le produit doit bien se trouver dans sa catégorie.</li>
+    </ol>
+    <figure>
+      <img src="assets/tuto/08-resultat-site.png" alt="Rendu des filtres côté site">
+      <figcaption>Côté site : la colonne de filtres (Public, Catégories, Forme, Marques) reprend tout ce qu'on a renseigné.</figcaption>
+    </figure>
+
+    <div class="box tip">
+      <h3>Les tests finaux sont assurés de notre côté</h3>
+      <p style="margin:0">Une fois vos produits rangés, <strong>nous réalisons les tests finaux</strong> pour vérifier
+      que tout est correct, notamment qu'il n'y a <strong>aucun problème d'URL</strong> (liens cassés, redirections,
+      anciennes adresses). Vous n'avez pas à vous en occuper : on valide l'ensemble avant la mise en ligne définitive.</p>
+    </div>
+
+    <!-- CHECKLIST -->
+    <h2>Mémo : à vérifier pour chaque produit</h2>
+    <div class="box recap">
+      <ul class="check">
+        <li>Une <strong>seule</strong> catégorie cochée, au bon libellé unifié</li>
+        <li>Anciennes catégories <strong>décochées</strong></li>
+        <li><strong>Marque</strong> cochée (une seule) dans l'encart Marques</li>
+        <li><strong>Public</strong> renseigné (et les deux valeurs si vendu Pro + Particulier)</li>
+        <li><strong>Forme</strong> renseignée (Liquide / Poudre / Solide)</li>
+        <li><strong>Gamme</strong> renseignée si produit Pro (sinon laissée vide)</li>
+        <li>Attributs <strong>enregistrés</strong> puis fiche <strong>Mise à jour</strong></li>
+      </ul>
+    </div>
+
+    <footer>Tutoriel de maintenance · réalisé par APPO pour NOTILIA · document confidentiel · juin 2026</footer>
+
+  </div>
+</body>
+</html>
